@@ -1,0 +1,12 @@
+#- name: clone kyestone
+#  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
+
+- pip: name=virtualenv
+
+- name: create virtual env
+  command: "virtualenv {{keystone_dir}}/venv"
+
+- name: setup.py install
+  shell: "{{ keystone_dir }}/venv/bin/python {{ keystone_dir }}/setup.py install"
+  args:
+    chdir: "{{ keystone_dir }}"

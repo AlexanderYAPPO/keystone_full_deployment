@@ -10,5 +10,32 @@
 #        - name: 'mysqld'
 #          config:
 #            - innodb_lof_file_size = 48M
-    - role: manage-db
+#    - role: manage-db
+    - role: openstack-keystone
+      keystone_dir: /home/tester/keystone
+      keystone_database_url: "mysql://keystone:tester@10.0.2.15/keystone"
+      keystone_admin_token: "d8b3cd04efb818a91f6a"
+      keystone_tenants:
+        - name: admin
+          description: "Admin tenant"
+        - name: service
+          description: "Service tenant"
+        - name: demo
+          description: "Demo tenant"
+      keystone_user:
+        - name: admin
+          password: tester
+          tenant: admin
+      keystone_roles:
+        - name: admin
+          user: admin
+          tenant: admin
+      keystone_service:
+        - name: keystone
+          service_type: identity
+      keystone_endpoints:
+        - service_name: keystone
+          public_url: "http://10.0.2.15:5000"
+          internal_url: "http://10.0.2.15:5000"
+          admin_url: "http://10.0.2.15:35357"
       
