@@ -1,0 +1,12 @@
+---
+
+- hosts: hosts
+  sudo: yes
+  roles:
+    - role: ansible-mariadb
+      mariadb_root_username: root
+      mariadb_root_password: tester
+      mariad_default_config:
+        - name: 'mysqld'
+          config:
+            - innodb_lof_file_size = 48M
