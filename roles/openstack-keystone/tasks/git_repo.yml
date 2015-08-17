@@ -4,7 +4,18 @@
 - pip: name=virtualenv
 
 - name: create virtual env
-  command: "virtualenv {{keystone_dir}}/venv"
+  command: "virtualenv {{ keystone_dir }}/venv"
+
+- name: install dependencies
+  apt: name="{{ item }}" state=present
+  with_items:
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - python-dev
+
+- name: install requirements
+  pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv
 
 - name: setup.py install
   shell: "{{ keystone_dir }}/venv/bin/python {{ keystone_dir }}/setup.py install"
