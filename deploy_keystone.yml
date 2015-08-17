@@ -22,7 +22,7 @@
           description: "Service tenant"
         - name: demo
           description: "Demo tenant"
-      keystone_user:
+      keystone_users:
         - name: admin
           password: tester
           tenant: admin
@@ -30,7 +30,7 @@
         - name: admin
           user: admin
           tenant: admin
-      keystone_service:
+      keystone_services:
         - name: keystone
           service_type: identity
       keystone_endpoints:

@@ -45,10 +45,10 @@
 #  retries: "{{ keystone_api_retries }}"
 #  delay: "{{ keystone_api_retries_delay }}"
 
-- name: Sync Keystone database
-  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
+#- name: Sync Keystone database
+#  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
 
-- include: endpoints.yml
-- include: tenants.yml
+#- include: endpoints.yml
+#- include: tenants.yml
 - include: users.yml
 - include: roles.yml
