@@ -19,11 +19,11 @@
 #
 
 - name: Create dir for keystone
-  file: path=/etc/keystone state=directory mode=0755 owner=tester
+  file: path=/etc/keystone state=directory mode=0755 owner={{ os_user }}
   sudo: yes
 
 - name: Create dir for keystone
-  file: path=/var/log/keystone state=directory mode=0755 owner=tester
+  file: path=/var/log/keystone state=directory mode=0755 owner={{ os_user }}
   sudo: yes
 
 - name: Configure Keystone
@@ -69,4 +69,4 @@
 #    - Restart Keystone
 
 - name: Copy kayestone-paste.ini
-  copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner=tester
+  copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ os_user }}

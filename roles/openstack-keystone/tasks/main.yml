@@ -18,23 +18,23 @@
 # limitations under the License.
 #
 
-#- meta: flush_handlers
+- meta: flush_handlers
 
 - include: facts.yml
-#- include: packages.yml
-#- include: git_repo.yml
-#- include: configuration.yml
+- include: packages.yml
+- include: git_repo.yml
+- include: configuration.yml
 
-#- meta: flush_handlers
+- meta: flush_handlers
 
-#- name: Make sure Keystone is started
-#  service: name={{ keystone_service }} state=started
-#- name: Wait Keystone admin serice
-#  wait_for: >
-#    host={{ keystone_hostname }}
-#    port={{ keystone_admin_port }}
+- name: Make sure Keystone is started
+  service: name={{ keystone_service }} state=started
+- name: Wait Keystone admin serice
+  wait_for: >
+    host={{ keystone_hostname }}
+    port={{ keystone_admin_port }}
 
-#- include: maintenance.yml
+# - include: maintenance.yml
 
 #- name: Sync Keystone database
 #  command: "{{ keystone_dir }}/venv/bin/keystone-manage db_sync"
@@ -48,7 +48,7 @@
 #- name: Sync Keystone database
 #  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
 
-#- include: endpoints.yml
-#- include: tenants.yml
+- include: endpoints.yml
+- include: tenants.yml
 - include: users.yml
 - include: roles.yml

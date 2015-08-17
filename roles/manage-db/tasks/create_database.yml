@@ -1,9 +1,8 @@
-#- name: Create Database Keystone
-#  mysql_db: name=keystone
+- name: Create Database Keystone
+  mysql_db: name=keystone
 
 - name: Grant Privileges
   mysql_user: name=keystone host=localhost password=tester priv=keystone.*:ALL,GRANT
 
 - name: Grant Privileges2
   mysql_user: name=keystone host="%" password=tester priv=keystone.*:GRANT,ALL
-

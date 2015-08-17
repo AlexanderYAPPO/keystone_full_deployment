@@ -104,7 +104,7 @@
   when: mariadb_manage_service
   changed_when: false
 
-# ADDED
+# ADDED. Didn't work with these files created.
 - name: Delete InnoDB ib_logfile0
   command: rm /var/lib/mysql/ib_logfile0
 

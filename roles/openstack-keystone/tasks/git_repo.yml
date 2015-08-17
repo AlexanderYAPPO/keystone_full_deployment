@@ -1,10 +1,5 @@
-#- name: clone kyestone
-#  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
-
-- pip: name="{{ item }}"
-  with_items:
-    - virtualenv
-    - MySQL-python
+- name: clone kyestone
+  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
 
 - name: create virtual env
   command: "virtualenv {{ keystone_dir }}/venv"
@@ -20,6 +15,9 @@
 
 - name: install requirements
   pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv
+
+- name: install MySQL-python
+  pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
 
 - name: setup.py install
   shell: "{{ keystone_dir }}/venv/bin/python {{ keystone_dir }}/setup.py install"

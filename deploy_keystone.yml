@@ -3,15 +3,16 @@
 - hosts: hosts
   sudo: yes
   roles:
-#    - role: ansible-mariadb
-#      mariadb_root_username: root
-#      mariadb_root_password: tester
-#      mariad_default_config:
-#        - name: 'mysqld'
-#          config:
-#            - innodb_lof_file_size = 48M
-#    - role: manage-db
+    - role: ansible-mariadb
+      mariadb_root_username: root
+      mariadb_root_password: tester
+      mariad_default_config:
+        - name: 'mysqld'
+          config:
+            - innodb_lof_file_size = 48M
+    - role: manage-db
     - role: openstack-keystone
+      os_user: tester
       keystone_dir: /home/tester/keystone
       keystone_database_url: "mysql://keystone:tester@localhost/keystone"
       keystone_admin_token: "d8b3cd04efb818a91f6a"
