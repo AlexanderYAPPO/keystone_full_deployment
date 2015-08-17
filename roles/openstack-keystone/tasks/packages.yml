@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-- include: packages_redhat.yml
-  when: ansible_os_family == 'RedHat'
+#- include: packages_redhat.yml
+#  when: ansible_os_family == 'RedHat'
 
 - include: packages_debian.yml
-  when: ansible_os_family == 'Debian'
+#  when: ansible_os_family == 'Debian'
 
 
