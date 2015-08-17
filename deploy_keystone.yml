@@ -13,7 +13,7 @@
 #    - role: manage-db
     - role: openstack-keystone
       keystone_dir: /home/tester/keystone
-      keystone_database_url: "mysql://keystone:tester@10.0.2.15/keystone"
+      keystone_database_url: "mysql://keystone:tester@localhost/keystone"
       keystone_admin_token: "d8b3cd04efb818a91f6a"
       keystone_tenants:
         - name: admin
