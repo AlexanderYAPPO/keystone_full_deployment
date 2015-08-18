@@ -64,8 +64,8 @@
     - section: database
       option: connection
       value: "{{ keystone_database_url }}"
-  notify:
-    - Sync Keystone database
+#  notify:
+#    - Sync Keystone database
 #    - Restart Keystone
 
 - name: Copy kayestone-paste.ini
