@@ -39,4 +39,6 @@
           public_url: "http://10.0.2.15:5000"
           internal_url: "http://10.0.2.15:5000"
           admin_url: "http://10.0.2.15:35357"
-      
+    - role: openstack-rally
+      os_user: tester
+      rally_dir: /home/tester/rally

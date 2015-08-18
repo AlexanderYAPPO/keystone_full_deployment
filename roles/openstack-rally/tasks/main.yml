@@ -1,0 +1,14 @@
+---
+
+- name: Create Rally directory
+  file: path={{ rally_dir }} owner={{ os_user }} mode=0644 state=directory
+
+- name: Download Rally
+  get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest={{ rally_dir }}
+
+- name: change owner and rights
+  shell: "chown {{ os_user }}:{{ os_user }} {{ rally_dir }}/install_rally.sh; chmod 755 {{ rally_dir }}/install_rally.sh"
+  sudo: yes
+
+- name: Install Rally
+  shell: "yes | {{ rally_dir }}/install_rally.sh --target {{ rally_dir }}"
