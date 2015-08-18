@@ -51,8 +51,6 @@
     - section:  DEFAULT
       option:   public_port
       value:    "{{ keystone_port }}"
-#  notify:
-#    - Restart Keystone
 
 - name: Configure Keystone database
   ini_file: >
@@ -64,9 +62,6 @@
     - section: database
       option: connection
       value: "{{ keystone_database_url }}"
-#  notify:
-#    - Sync Keystone database
-#    - Restart Keystone
 
 - name: Copy kayestone-paste.ini
   copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ os_user }}

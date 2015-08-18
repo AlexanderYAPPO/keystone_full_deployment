@@ -1,9 +1,6 @@
 - name: clone kyestone
   git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
 
-#- name: create directory for venv
-#  file: path={{ keystone_dir }}/venv state=directory mode=0755 owner={{ os_user }}
-
 - name: install virtualenv
   pip: name=virtualenv
 
