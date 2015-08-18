@@ -2,6 +2,11 @@
 
 - hosts: hosts
   sudo: yes
+#  vars:
+#    keystone_user: admin
+#    keystone_password: tester
+#    keystone_auth: "http://10.0.2.15:35357/v2.0
+#    keystone_tenant: admin
   roles:
     - role: ansible-mariadb
       mariadb_root_username: root
@@ -25,7 +30,7 @@
           description: "Demo tenant"
       keystone_users:
         - name: admin
-          password: tester
+          password: {{ keystone_password }}
           tenant: admin
       keystone_roles:
         - name: admin

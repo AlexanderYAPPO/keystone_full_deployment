@@ -12,3 +12,15 @@
 
 - name: Install Rally
   shell: "yes | {{ rally_dir }}/install_rally.sh --target {{ rally_dir }}"
+
+- name: prepare rally
+  shell: "{{ rally_dir }}/bin/rally deployment create --fromenv --name=existing"
+  environment:
+     #OS_USERNAME: "{{ keystone_user }}"
+     #OS_PASSWORD: "{{ keystone_password }}"
+     #OS_AUTH_URL: "{{ keystone_auth }}"
+     #OS_TENANT_NAME: "{{ keystone_tenant }}"
+     OS_USERNAME: admin
+     OS_PASSWORD: tester
+     OS_AUTH_URL: http://10.0.2.15:35357/v2.0
+     OS_TENANT_NAME: admin
