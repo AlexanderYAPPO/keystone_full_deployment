@@ -1,0 +1,4 @@
+---
+
+- name: Running Keystone in background
+  shell: "source {{ keystone_dir }}/venv/bin/activate; nohup {{ keystone_dir }}/venv/bin/keystone-all &"

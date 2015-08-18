@@ -20,10 +20,10 @@
 
 #- meta: flush_handlers
 
-- include: facts.yml
-- include: packages.yml
-- include: git_repo.yml
-- include: configuration.yml
+##- include: facts.yml
+##- include: packages.yml
+##- include: git_repo.yml
+##- include: configuration.yml
 
 #- meta: flush_handlers
 
@@ -47,6 +47,8 @@
 
 #- name: Sync Keystone database
 #  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
+
+#- include: run_keystone.yml
 
 - include: endpoints.yml
 - include: tenants.yml
