@@ -82,6 +82,10 @@
     group: "{{ postgresql_service_group }}"
     mode: 0755
 
+- name: Change owners 
+  shell: "chown -R tester:tester /var/lib/postgresql/9.3/main"
+  sudo: yes
+
 - name: PostgreSQL | Restart PostgreSQL
   service:
     name: postgresql

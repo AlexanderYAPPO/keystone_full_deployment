@@ -4,7 +4,7 @@
   roles:
      - role: postgresql
        postgresql_admin_user: "root"
-       sudo: yes
+#       sudo: yes
 #    - role: ansible-mariadb
 #      mariadb_root_username: "{{ global_mariadb_user }}"
 #      mariadb_root_password: "{{ global_mariadb_password }}"
