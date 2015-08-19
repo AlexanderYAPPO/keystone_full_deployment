@@ -8,6 +8,7 @@
     state: directory
     mode: 0700
   register: pgdata_dir_exist
+  sudo: yes
 
 - name: PostgreSQL | Ensure the locale is generated
   sudo: yes
@@ -33,6 +34,7 @@
     group: "{{ postgresql_service_group }}"
     mode: 0640
   register: postgresql_configuration_pt1
+  sudo_user: "{{ postgresql_service_user }}"
 
 - name: PostgreSQL | Update configuration - pt. 2 (postgresql.conf)
   template:
@@ -43,6 +45,7 @@
     group: "{{ postgresql_service_group }}"
     mode: 0640
   register: postgresql_configuration_pt2
+  sudo_user: "{{ postgresql_service_user }}"
 
 - name: PostgreSQL | Update configuration - pt. 3 (pgtune)
   sudo: true
@@ -81,10 +84,11 @@
     owner: "{{ postgresql_service_user }}"
     group: "{{ postgresql_service_group }}"
     mode: 0755
+  sudo_user: "{{ postgresql_service_user }}"
 
-- name: Change owners 
-  shell: "chown -R tester:tester /var/lib/postgresql/9.3/main"
-  sudo: yes
+#- name: Change owners 
+#  shell: "chown -R tester:tester /var/lib/postgresql/9.3/main"
+#  sudo: yes
 
 - name: PostgreSQL | Restart PostgreSQL
   service:

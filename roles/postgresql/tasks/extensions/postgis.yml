@@ -12,3 +12,4 @@
     - "postgresql-{{postgresql_version}}-postgis-{{postgresql_ext_postgis_version}}-scripts"
   notify:
     - restart postgresql
+  sudo: yes
