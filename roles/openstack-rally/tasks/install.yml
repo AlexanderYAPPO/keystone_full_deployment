@@ -1,0 +1,27 @@
+---
+
+- name: Create Rally directory
+  file: path={{ rally_dir }} owner={{ global_os_user }} mode=0775 state=directory
+
+- name: Download Rally
+  get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest=~
+
+- name: Install libpq-dev for psycopg2
+  apt: name="{{ item }}"
+  with_items:
+    - libpq-dev
+    - libxml2-dev
+    - libxslt-dev
+    - python-dev
+  sudo: yes
+
+- name: Install Rally
+  shell: "yes | bash ~/install_rally.sh"
+
+- name: prepare rally
+  shell: "{{ rally_dir }}/bin/rally deployment create --fromenv --name=existing"
+  environment:
+     OS_USERNAME: "{{ global_keystone_user }}"
+     OS_PASSWORD: "{{ global_keystone_password }}"
+     OS_AUTH_URL: "{{ global_keystone_auth }}"
+     OS_TENANT_NAME: "{{ global_keystone_tenant }}"

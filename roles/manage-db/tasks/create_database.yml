@@ -2,7 +2,7 @@
   mysql_db: name=keystone login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
 
 - name: Grant Privileges
-  mysql_user: name=keystone host=localhost password=tester priv=keystone.*:ALL,GRANT login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
+  mysql_user: name=keystone host=localhost password={{ global_keystone_password }} priv=keystone.*:ALL,GRANT login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
 
 - name: Grant Privileges2
-  mysql_user: name=keystone host="%" password=tester priv=keystone.*:GRANT,ALL login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
+  mysql_user: name=keystone host="%" password={{ global_keystone_password }} priv=keystone.*:GRANT,ALL login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
