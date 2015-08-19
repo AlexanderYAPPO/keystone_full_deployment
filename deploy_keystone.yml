@@ -3,15 +3,15 @@
 - hosts: hosts
 #  sudo: yes
   roles:
-    - role: ansible-mariadb
-      mariadb_root_username: "{{ global_mariadb_user }}"
-      mariadb_root_password: tester
-      mariad_default_config:
-        - name: 'mysqld'
-          config:
-            - innodb_lof_file_size = 48M
-      sudo: yes
-    - role: manage-db
+    #- role: ansible-mariadb
+    #  mariadb_root_username: "{{ global_mariadb_user }}"
+    #  mariadb_root_password: tester
+    #  mariad_default_config:
+    #    - name: 'mysqld'
+    #      config:
+    #        - innodb_lof_file_size = 48M
+    #  sudo: yes
+    #- role: manage-db
     - role: openstack-keystone
       os_user: tester
       keystone_dir: /home/tester/keystone

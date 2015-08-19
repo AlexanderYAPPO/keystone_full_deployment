@@ -3,6 +3,7 @@
 
 - name: install virtualenv
   pip: name=virtualenv
+  sudo: yes
 
 - name: create virtual env
   command: "virtualenv {{ keystone_dir }}/venv"
@@ -15,6 +16,7 @@
     - libffi-dev
     - python-dev
     - libmariadbclient-dev
+  sudo: yes
 
 - name: install requirements
   pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv

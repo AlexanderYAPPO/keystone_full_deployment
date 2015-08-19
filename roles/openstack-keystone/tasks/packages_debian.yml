@@ -17,9 +17,10 @@
 # limitations under the License.
 #
 
-- name: Install keystone service and client
+- name: Install keystone client
   apt: name="{{ item }}" state=present
   with_items:
 #    - keystone
     - python-keystoneclient
+  sudo: yes
 
