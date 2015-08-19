@@ -1,20 +1,16 @@
 ---
 
 - hosts: hosts
-  sudo: yes
-#  vars:
-#    keystone_user: admin
-#    keystone_password: tester
-#    keystone_auth: "http://10.0.2.15:35357/v2.0
-#    keystone_tenant: admin
+#  sudo: yes
   roles:
     - role: ansible-mariadb
-      mariadb_root_username: root
+      mariadb_root_username: "{{ global_mariadb_user }}"
       mariadb_root_password: tester
       mariad_default_config:
         - name: 'mysqld'
           config:
             - innodb_lof_file_size = 48M
+      sudo: yes
     - role: manage-db
     - role: openstack-keystone
       os_user: tester
@@ -30,7 +26,7 @@
           description: "Demo tenant"
       keystone_users:
         - name: admin
-          password: {{ keystone_password }}
+          password: "{{ keystone_password }}" #tester
           tenant: admin
       keystone_roles:
         - name: admin

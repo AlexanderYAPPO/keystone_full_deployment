@@ -1,8 +1,8 @@
 - name: Create Database Keystone
-  mysql_db: name=keystone
+  mysql_db: name=keystone login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
 
 - name: Grant Privileges
-  mysql_user: name=keystone host=localhost password=tester priv=keystone.*:ALL,GRANT
+  mysql_user: name=keystone host=localhost password=tester priv=keystone.*:ALL,GRANT login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
 
 - name: Grant Privileges2
-  mysql_user: name=keystone host="%" password=tester priv=keystone.*:GRANT,ALL
+  mysql_user: name=keystone host="%" password=tester priv=keystone.*:GRANT,ALL login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
