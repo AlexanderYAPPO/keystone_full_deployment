@@ -1,7 +1,23 @@
-- name: install Apache2
+- name: Install Apache2
   apt: name={{ item }} state=present
   with_items:
     - apache2
     - libapache2-mod-wsgi
   sudo: yes
   
+- name: Change Apache config
+  lineinfile: dest=/etc/apache2/apache2.conf line="ServerName {{ global_keystone_auth }}"
+  sudo: yes
+
+- name: Copy WSGI config
+  copy: src=roles/openstack-keystone/files/wsgi-keystone.conf dest=/etc/apache2/sites-available/wsgi-keystone.conf
+  sudo: yes
+
+- file:  src=/etc/apache2/sites-available/wsgi-keystone.conf path=/etc/apache2/sites-enabled state=link force=yes
+  sudo: yes
+
+- include: wsgi_configuration.yml
+
+- name: Restart Apache2
+  service: name=apache2 state=restarted
+  sudo: yes
