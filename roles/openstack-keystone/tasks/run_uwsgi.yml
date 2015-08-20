@@ -1,0 +1,23 @@
+- name: Create WSGI directory
+  file: path=/var/www/cgi-bin/keystone owner={{ global_os_user }} mode=0755 state=directory
+  sudo: yes
+
+- name: WSGI component to main
+  get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/main
+  sudo: yes
+
+- name: WSGI component to admin
+  get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/admin
+  sudo: yes
+
+- name: Change owners
+  shell: "chown -R {{ global_os_user }}:{{ global_os_user }} /var/www/cgi-bin/keystone"
+  sudo: yes
+
+- name: install uWSGI
+  pip:
+    name: uwsgi
+    virtualenv: "{{ keystone_dir }}/venv"
+
+- name: Running Keystone over uWSGI #only admin supported so far
+  shell: "source {{ keystone }}/venv/bin/activate; nohup uwsgi --http {{ global_keystone_admin_url }} --wsgi-file /var/www/cgi-bin/keystone/admin"
