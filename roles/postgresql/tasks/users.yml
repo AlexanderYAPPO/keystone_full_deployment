@@ -5,14 +5,13 @@
     name: postgresql
     state: started
 
-- name: PostgreSQL | Make sure the PostgreSQL users are present
+- name: PostgreSQL | Create users
   postgresql_user:
-    name: "{{item.name}}"
-    password: "{{item.pass | default('pass')}}"
+    name: keystone
+    password: "{{ global_keystone_password }}"
     port: "{{postgresql_port}}"
     state: present
     login_user: "{{postgresql_admin_user}}"
+    login_password: "{{ global_postgresql_password }}"
   sudo: yes
   sudo_user: "{{postgresql_admin_user}}"
-  with_items: postgresql_users
-  when: postgresql_users|length > 0

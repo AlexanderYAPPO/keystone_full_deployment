@@ -8,3 +8,4 @@ global_keystone_auth: "http://10.0.2.15:35357/v2.0"
 global_mariadb_user: root
 global_mariadb_password: tester
 global_os_user: tester
+global_postgresql_password: tester

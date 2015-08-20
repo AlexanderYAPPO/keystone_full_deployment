@@ -3,7 +3,7 @@
 - hosts: hosts
   roles:
      - role: postgresql
-       postgresql_admin_user: "root"
+       postgresql_admin_user: "postgres"
 #       sudo: yes
 #    - role: ansible-mariadb
 #      mariadb_root_username: "{{ global_mariadb_user }}"
