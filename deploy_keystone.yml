@@ -2,6 +2,10 @@
 
 - hosts: hosts
   roles:
+    - role: postgresql
+      postgresql_admin_user: "postgres"
+      when: global_db == "postgresql"
+
     - role: ansible-mariadb
       mariadb_root_username: "{{ global_mariadb_user }}"
       mariadb_root_password: "{{ global_mariadb_password }}"
@@ -10,10 +14,11 @@
           config:
             - innodb_lof_file_size = 48M
       sudo: yes
-#    - role: manage-db
+      when: global_db == "mysql"
+
     - role: openstack-keystone
       keystone_dir: /home/tester/keystone
-      keystone_database_url: "mysql://keystone:{{ global_keystone_password }}@localhost/keystone"
+      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
       keystone_admin_token: "{{ global_keystone_token }}"
       keystone_tenants:
         - name: admin
