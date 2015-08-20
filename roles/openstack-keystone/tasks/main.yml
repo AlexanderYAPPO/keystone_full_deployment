@@ -21,6 +21,7 @@
 - include: facts.yml
 - include: packages.yml
 - include: git_repo.yml
+- include: db_dependencies.yml
 - include: configuration.yml
 
 - name: Sync Keystone database

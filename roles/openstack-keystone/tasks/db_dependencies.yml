@@ -1,0 +1,13 @@
+#- name: install MySQL-python
+#  pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
+
+- name: Install depndencies
+  apt: name={{ item }}
+  with_items: 
+    - build-dep
+    - python-psycopg2
+    - libpq-dev
+  sudo: yes
+
+- name: install psycopg2
+  pip: name=psycopg2 virtualenv={{ keystone_dir }}/venv
