@@ -18,14 +18,11 @@
 # limitations under the License.
 #
 
-- include: facts.yml
-- include: packages.yml
-- include: git_repo.yml
-- include: db_dependencies.yml
-- include: configuration.yml
-
-- name: Sync Keystone database
-  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
+#- include: facts.yml
+#- include: packages.yml
+#- include: git_repo.yml
+#- include: db_dependencies.yml
+#- include: configuration.yml
 
 - include: run_keystone.yml
   when: global_run_type == "eventlet"
@@ -33,9 +30,12 @@
 - include: run_uwsgi.yml
   when: global_run_type == "uwsgi"
 
-- pause: seconds=10
+- include: run_apache.yml
+  when: global_run_type == "apache"
 
-- include: endpoints.yml
-- include: tenants.yml
-- include: users.yml
-- include: roles.yml
+#- pause: seconds=10
+
+#- include: endpoints.yml
+#- include: tenants.yml
+#- include: users.yml
+#- include: roles.yml

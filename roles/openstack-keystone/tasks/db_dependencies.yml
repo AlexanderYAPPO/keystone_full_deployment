@@ -1,12 +1,15 @@
 - name: install MySQL-python
   pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
+  when: global_db == "mysql"
 
-#- name: Install depndencies
-#  apt: name={{ item }}
-#  with_items: 
-#    - python-psycopg2
-#    - libpq-dev
-#  sudo: yes
+- name: Install depndencies
+  apt: name={{ item }}
+  with_items: 
+    - python-psycopg2
+    - libpq-dev
+  sudo: yes
+  when: global_db == "postgresql"
 
-#- name: install psycopg2
-#  pip: name=psycopg2 virtualenv={{ keystone_dir }}/venv
+- name: install psycopg2
+  pip: name=psycopg2 virtualenv={{ keystone_dir }}/venv
+  when: global_db == "postgresql"

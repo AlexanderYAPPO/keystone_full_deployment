@@ -10,6 +10,6 @@ global_mariadb_user: root
 global_mariadb_password: tester
 global_os_user: tester
 global_postgresql_password: tester
-global_run_type: eventlet #eventlet or uwsgi
+global_run_type: apache #eventlet or uwsgi
 global_db: mysql #mysql or postgresql
-global_test: no
+global_skip: no

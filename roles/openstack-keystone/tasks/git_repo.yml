@@ -17,15 +17,9 @@
     - python-dev
     - libmariadbclient-dev
   sudo: yes
-  when: global_db == "postgresql"
 
 - name: install requirements
   pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv
-  when: global_db == "postgresql"
-
-- name: install MySQL-python
-  pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
-  when: global_db == "mysql"
 
 - name: setup.py install
   shell: "{{ keystone_dir }}/venv/bin/python {{ keystone_dir }}/setup.py install"

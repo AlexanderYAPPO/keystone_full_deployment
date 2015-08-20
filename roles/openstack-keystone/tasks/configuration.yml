@@ -65,3 +65,6 @@
 
 - name: Copy kayestone-paste.ini
   copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}
+
+- name: Sync Keystone database
+  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
