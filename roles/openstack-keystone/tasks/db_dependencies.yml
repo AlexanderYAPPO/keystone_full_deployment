@@ -4,7 +4,6 @@
 - name: Install depndencies
   apt: name={{ item }}
   with_items: 
-    - build-dep
     - python-psycopg2
     - libpq-dev
   sudo: yes
