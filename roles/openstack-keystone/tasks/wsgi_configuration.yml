@@ -3,11 +3,13 @@
   sudo: yes
 
 - name: WSGI component to main
-  get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/main
+  #get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/main
+  template: src=roles/openstack-keystone/templates/application.py.j2 dest=/var/www/cgi-bin/keystone/main owner={{ global_os_user }}
   sudo: yes
 
 - name: WSGI component to admin
-  get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/admin
+  #get_url: url=http://git.openstack.org/cgit/openstack/keystone/plain/httpd/keystone.py?h=stable/kilo dest=/var/www/cgi-bin/keystone/admin
+  template: src=roles/openstack-keystone/templates/application.py.j2 dest=/var/www/cgi-bin/keystone/admin owner={{ global_os_user }}
   sudo: yes
 
 - name: Change owners

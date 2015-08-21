@@ -10,10 +10,10 @@
   sudo: yes
 
 - name: Copy WSGI config
-  copy: src=roles/openstack-keystone/files/wsgi-keystone.conf dest=/etc/apache2/sites-available/wsgi-keystone.conf
+  template: src=roles/openstack-keystone/templates/wsgi-keystone.conf.j2 dest=/etc/apache2/sites-available/wsgi-keystone.conf
   sudo: yes
 
-- file:  src=/etc/apache2/sites-available/wsgi-keystone.conf path=/etc/apache2/sites-enabled state=link force=yes
+- shell: "ln -s /etc/apache2/sites-available/wsgi-keystone.conf /etc/apache2/sites-enabled"
   sudo: yes
 
 - include: wsgi_configuration.yml
