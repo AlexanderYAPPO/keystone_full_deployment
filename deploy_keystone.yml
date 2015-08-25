@@ -9,7 +9,7 @@
   roles:
     - role: postgresql
       postgresql_admin_user: "postgres"
-      when: global_db == "postgresql"
+      when: global_db == "postgresql"# and global_skip == True
 
     - role: ansible-mariadb
       mariadb_root_username: "{{ global_mariadb_user }}"
@@ -19,7 +19,7 @@
           config:
             - innodb_lof_file_size = 48M
       sudo: yes
-      when: global_db == "mysql"
+      when: global_db == "mysql"# and global_skip == True
 
     - role: openstack-keystone
       keystone_dir: /home/tester/keystone
@@ -51,3 +51,4 @@
 
     - role: openstack-rally
       rally_dir: /home/tester/rally
+      when: global_skip = True

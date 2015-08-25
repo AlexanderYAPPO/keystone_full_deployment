@@ -5,5 +5,30 @@
     name: uwsgi
     virtualenv: "{{ keystone_dir }}/venv"
 
+- name: isntall nginx
+  apt: name=nginx
+  sudo: yes
+
+- name: copy nginx config
+  template: src=roles/openstack-keystone/templates/nginx.conf.j2 dest=/etc/nginx/nginx.conf
+  sudo: yes
+
+- name: deploy server config
+  template: src=roles/openstack-keystone/templates/keystone_server_block.j2 dest=/etc/nginx/sites-available/keystone
+  sudo: yes
+
+- shell: "ln -s /etc/nginx/sites-available/keystone /etc/nginx/sites-enabled"
+  sudo: yes
+
+- name: copy uwsgi ini file
+  template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone.ini owner={{ global_os_user }}
+  sudo: yes
+
+- name: Restart nginx
+  service: name=nginx state=restarted
+  sudo: yes
+
 - name: Running Keystone over uWSGI #only admin supported so far
-  shell: "source {{ keystone }}/venv/bin/activate; nohup uwsgi --http {{ global_keystone_admin_url }} --wsgi-file /var/www/cgi-bin/keystone/admin"
+  shell: "source {{ keystone_dir }}/venv/bin/activate; nohup uwsgi /tmp/uwsgi-keystone.ini"
+
+

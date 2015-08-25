@@ -18,11 +18,11 @@
 # limitations under the License.
 #
 
-#- include: facts.yml
-#- include: packages.yml
-#- include: git_repo.yml
-#- include: db_dependencies.yml
-#- include: configuration.yml
+- include: facts.yml
+- include: packages.yml
+- include: git_repo.yml
+- include: db_dependencies.yml
+- include: configuration.yml
 
 - include: run_keystone.yml
   when: global_run_type == "eventlet"
@@ -33,9 +33,9 @@
 - include: run_apache.yml
   when: global_run_type == "apache"
 
-#- pause: seconds=10
+- pause: seconds=2
 
-#- include: endpoints.yml
-#- include: tenants.yml
-#- include: users.yml
-#- include: roles.yml
+- include: endpoints.yml
+- include: tenants.yml
+- include: users.yml
+- include: roles.yml
