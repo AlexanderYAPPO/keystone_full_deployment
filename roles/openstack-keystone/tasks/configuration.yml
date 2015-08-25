@@ -63,7 +63,7 @@
       option: connection
       value: "{{ keystone_database_url }}"
 
-- name: Copy kayestone-paste.ini
+- name: Copy keystone-paste.ini
   copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}
 
 - name: Sync Keystone database

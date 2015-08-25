@@ -1,4 +1,4 @@
-- name: clone kyestone
+- name: clone keystone
   git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
 
 - name: install virtualenv
