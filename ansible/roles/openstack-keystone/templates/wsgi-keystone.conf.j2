@@ -1,7 +1,7 @@
-Listen 5000
-Listen 35357
+Listen {{ keystone_port }}
+Listen {{ keystone_admin_port }}
 
-<VirtualHost *:5000>
+<VirtualHost *:{{ keystone_port }}>
   WSGIDaemonProcess keystone-public processes=5 threads=1 user={{ global_os_user }} display-name=%{GROUP}
   WSGIProcessGroup keystone-public
   WSGIScriptAlias / /var/www/cgi-bin/keystone/main
@@ -14,7 +14,7 @@ Listen 35357
   ErrorLog /var/log/apache2/keystone-error.log
   CustomLog /var/log/apache2/keystone-access.log combined
 </VirtualHost>
-<VirtualHost *:35357>
+<VirtualHost *:{{ keystone_admin_port }}>
   WSGIDaemonProcess keystone-admin processes=5 threads=1 user={{ global_os_user }} display-name=%{GROUP}
   WSGIProcessGroup keystone-admin
   WSGIScriptAlias / /var/www/cgi-bin/keystone/admin
