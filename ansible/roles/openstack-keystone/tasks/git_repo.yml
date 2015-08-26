@@ -7,7 +7,13 @@
     - python-dev
     - libmariadbclient-dev
     - git
-    - python-pip
+  sudo: yes
+
+- name: download pip installation script
+  get_url: url=https://bootstrap.pypa.io/get-pip.py dest=~
+  sudo: yes
+- name: install pip
+  command: "python ~/get-pip.py"
   sudo: yes
 
 - name: clone keystone
