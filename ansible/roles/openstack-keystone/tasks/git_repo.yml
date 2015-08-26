@@ -1,3 +1,15 @@
+- name: install dependencies
+  apt: name="{{ item }}" state=present
+  with_items:
+    - build-essential
+    - libssl-dev
+    - libffi-dev
+    - python-dev
+    - libmariadbclient-dev
+    - git
+    - python-pip
+  sudo: yes
+
 - name: clone keystone
   git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
 
@@ -8,18 +20,8 @@
 - name: create virtual env
   command: "virtualenv {{ keystone_dir }}/venv"
 
-- name: install dependencies
-  apt: name="{{ item }}" state=present
-  with_items:
-    - build-essential
-    - libssl-dev
-    - libffi-dev
-    - python-dev
-    - libmariadbclient-dev
-  sudo: yes
-
 - name: install requirements
-  pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv
+  pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv extra_args='--no-cache-dir'
 
 - name: setup.py install
   shell: "{{ keystone_dir }}/venv/bin/python {{ keystone_dir }}/setup.py install"

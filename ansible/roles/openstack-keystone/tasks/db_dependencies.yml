@@ -2,7 +2,7 @@
   pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
   when: global_db == "mysql"
 
-- name: Install depndencies
+- name: Install dependencies
   apt: name={{ item }}
   with_items: 
     - python-psycopg2
