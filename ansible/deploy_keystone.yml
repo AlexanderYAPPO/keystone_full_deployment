@@ -29,6 +29,8 @@
       keystone_dir: /home/{{ global_os_user }}/keystone
       keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
       keystone_admin_token: "{{ global_keystone_token }}"
+      keystone_admin_port: 35357
+      keystone_port: 5000
       keystone_tenants:
         - name: admin
           description: "Admin tenant"
@@ -40,10 +42,16 @@
         - name: "{{ global_keystone_user }}"
           password: "{{ global_keystone_password }}"
           tenant: admin
+        - name: demo
+          password: "{{ global_keystone_password }}"
+          tenant: demo
       keystone_roles:
         - name: admin
           user: admin
           tenant: admin
+        - name: demo
+          user: demo
+          tenant: demo
       keystone_services:
         - name: keystone
           service_type: identity
