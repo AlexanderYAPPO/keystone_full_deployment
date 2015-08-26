@@ -1,5 +1,10 @@
+{% if item is defined and item.endpoint_role is defined %}
+{% set endpoint_role=item.endpoint_role %}
+{% else %}
+{% set endpoint_role="admin" %}
+{% endif %}
 [uwsgi]
-socket = /tmp/mysite.sock
+socket = /tmp/keystone_{{ endpoint_role }}.sock
 chmod-socket = 666
 
-wsgi-file = /var/www/cgi-bin/keystone/admin
+wsgi-file = /var/www/cgi-bin/keystone/{{ endpoint_role }}
