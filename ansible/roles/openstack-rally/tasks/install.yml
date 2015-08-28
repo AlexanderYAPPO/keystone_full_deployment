@@ -26,4 +26,5 @@
      OS_USERNAME: "{{ global_keystone_user }}"
      OS_PASSWORD: "{{ global_keystone_password }}"
      OS_AUTH_URL: "{{ global_keystone_auth }}"
+     OS_ENDPOINT: "{{ global_keystone_auth }}"
      OS_TENANT_NAME: "{{ global_keystone_tenant }}"

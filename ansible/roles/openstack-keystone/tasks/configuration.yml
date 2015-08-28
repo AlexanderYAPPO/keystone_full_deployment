@@ -52,6 +52,9 @@
       option:   public_port
       value:    "{{ keystone_port }}"
 
+- name: Deploy policy.json file
+  copy: src=roles/openstack-keystone/files/policy.json dest=/etc/keystone/policy.json owner={{ global_os_user }}
+
 - name: Configure Keystone database
   ini_file: >
     dest=/etc/keystone/keystone.conf
