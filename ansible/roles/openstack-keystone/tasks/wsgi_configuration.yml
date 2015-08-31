@@ -10,6 +10,10 @@
   template: src=roles/openstack-keystone/templates/application.py.j2 dest={{ keystone_cgi_dir }}/admin owner={{ global_os_user }}
   sudo: yes
 
+- name: WSGI component to admin for profiling
+  template: src=roles/openstack-keystone/templates/application_profile.py.j2 dest={{ keystone_cgi_dir }}/admin_profile owner={{ global_os_user }}
+  sudo: yes
+
 - name: Change owners
   shell: "chown -R {{ global_os_user }}:{{ global_os_user }} {{ keystone_cgi_dir }}"
   sudo: yes
