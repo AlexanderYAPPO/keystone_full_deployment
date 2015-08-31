@@ -7,4 +7,4 @@
 socket = /tmp/keystone_{{ endpoint_role }}.sock
 chmod-socket = 666
 
-wsgi-file = /var/www/cgi-bin/keystone/{{ endpoint_role }}
+wsgi-file = {{ keystone_cgi_dir }}/{{ endpoint_role }}

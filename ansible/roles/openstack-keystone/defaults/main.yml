@@ -34,6 +34,8 @@ keystone_roles: []
 keystone_services: []
 keystone_endpoints: []
 keystone_default_region: regionOne
+keystone_cgi_dir: /var/www/cgi-bin/keystone
+keystone_profile_result_path: /tmp/keystone_profile.prof
 
 # Database
 keystone_database_url: sqlite:////var/lib/keystone/keystone.db
