@@ -36,6 +36,7 @@ keystone_endpoints: []
 keystone_default_region: regionOne
 keystone_cgi_dir: /var/www/cgi-bin/keystone
 keystone_profile_result_path: /tmp/keystone_profile.prof
+keystone_dir: /tmp/keystone
 
 # Database
 keystone_database_url: sqlite:////var/lib/keystone/keystone.db

@@ -20,10 +20,6 @@
 - shell: "ln -s /etc/nginx/sites-available/keystone /etc/nginx/sites-enabled"
   sudo: yes
 
-- name: Create uwsgi.ini for admin pt.1
-  set_fact:
-    endpoint_role: "admin"
-
 - name: copy uwsgi ini file
   template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
   with_items:
