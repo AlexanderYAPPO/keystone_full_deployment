@@ -40,4 +40,3 @@
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
-

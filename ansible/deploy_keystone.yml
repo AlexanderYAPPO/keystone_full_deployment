@@ -5,15 +5,16 @@
   pre_tasks:
     - apt: update_cache=yes
       sudo: yes
+      when: install_flag == "yes"
     - apt: name=git state=present
       sudo: yes
+      when: install_flag == "yes"
     - debug: msg="{{ global_db }}"
     - debug: msg="{{ global_skip }}"
 
   roles:
     - role: postgresql
       postgresql_admin_user: "postgres"
-      when: global_db == "postgresql"
 
     - role: ansible-mariadb
       mariadb_root_username: "{{ global_mariadb_user }}"
@@ -23,7 +24,6 @@
           config:
             - innodb_lof_file_size = 48M
       sudo: yes
-      when: global_db == "mysql"
 
     - role: openstack-keystone
       keystone_dir: /home/{{ global_os_user }}/keystone
@@ -63,3 +63,8 @@
 
     - role: openstack-rally
       rally_dir: /home/{{ global_os_user }}/rally
+      when: install_flag == "yes"
+
+    - role: clear
+      sudo: yes
+

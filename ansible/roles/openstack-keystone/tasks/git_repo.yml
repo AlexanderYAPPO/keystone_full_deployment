@@ -26,6 +26,7 @@
 - name: create virtual env
   command: "virtualenv {{ keystone_dir }}/venv"
 
+
 - name: install requirements
   pip: requirements={{ keystone_dir }}/requirements.txt virtualenv={{ keystone_dir }}/venv extra_args='--no-cache-dir'
 

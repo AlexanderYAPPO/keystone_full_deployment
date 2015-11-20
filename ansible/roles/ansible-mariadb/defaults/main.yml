@@ -1,5 +1,5 @@
 ---
-
+install_flag: "yes"
 # MariaDB repository
 mariadb_set_repository: True
 mariadb_version: 10.0

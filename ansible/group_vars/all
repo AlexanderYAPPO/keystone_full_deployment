@@ -8,8 +8,10 @@ global_keystone_auth: "http://127.0.0.1:35357/v2.0"
 global_keystone_public: "http://127.0.0.1:5000/v2.0"
 global_mariadb_user: root
 global_mariadb_password: tester
-global_os_user: tester
+global_os_user: ubuntu
 global_postgresql_password: tester
-global_run_type: profile # eventlet or profile or uwsgi or apache
-global_db: mysql # mysql or postgresql
 global_skip: False
+#global_run_type: "shit"
+#global_db: "shit"
+#global_fs_type: "shit"
+#global_fs_src: "shit"

@@ -1,6 +1,17 @@
 ---
+- name: Mysql | Stop Mysql
+  service:
+    name: mysql
+    state: stopped
 
-# be sure all folders exists before resting permissions
+- mount: name={{mariadb_datadir}} src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
+
+- shell: "rm -rf {{mariadb_datadir}}/*"
+  sudo: yes
+
+- command: chown mysql:mysql {{mariadb_datadir}} -R
+
+# be sure all folders exists before resting permissions
 - name: ensure /run/mysqld folder exists
   file: path=/run/mysqld owner=mysql group=mysql mode=0755 state=directory
 
@@ -62,6 +73,7 @@
 # kill temp mariadb if present
 - name: exit temporary started
   command: kill {{mariadb_temp_instance.stdout_lines[0]}}
+  ignore_errors: yes
   when: datadir_is_ok.stat.exists == False
 
 - name: start mariadb
@@ -81,7 +93,7 @@
 
 - name: setting mariadb configuration
   template: src=my.cnf.j2 dest="{{mariadb_configuration}}" owner=root group=root mode=0640 backup=yes
-  notify: restart mariadb
+  #notify: restart mariadb
 
 - name: copy .my.cnf file with root password credentials
   template: src="home_my.cnf.j2" dest="{{ mariadb_user_home }}/.my.cnf" owner=root group=root mode=0600

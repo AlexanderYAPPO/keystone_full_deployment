@@ -18,7 +18,9 @@
   get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest=~
 
 - name: Install Rally
-  shell: "yes | bash ~/install_rally.sh"
+  shell: 'bash ~/install_rally.sh -v -y --target {{rally_dir}}'
+
+- shell: "chown {{global_os_user}}:{{global_os_user}} /home/{{global_os_user}}/rally -R"
 
 - name: prepare rally
   shell: "{{ rally_dir }}/bin/rally deployment create --fromenv --name=existing"

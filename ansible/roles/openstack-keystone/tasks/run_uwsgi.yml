@@ -1,14 +1,3 @@
-- include: wsgi_configuration.yml
-
-- name: install uWSGI
-  pip:
-    name: uwsgi
-    virtualenv: "{{ keystone_dir }}/venv"
-
-- name: isntall nginx
-  apt: name=nginx
-  sudo: yes
-
 - name: copy nginx config
   template: src=roles/openstack-keystone/templates/nginx.conf.j2 dest=/etc/nginx/nginx.conf
   sudo: yes
@@ -17,8 +6,13 @@
   template: src=roles/openstack-keystone/templates/keystone_server_block.j2 dest=/etc/nginx/sites-available/keystone
   sudo: yes
 
+- name: check keystone slink is present
+  stat: path=/etc/nginx/sites-enabled/keystone
+  register: link_is_ok
+
 - shell: "ln -s /etc/nginx/sites-available/keystone /etc/nginx/sites-enabled"
   sudo: yes
+  when: link_is_ok.stat.exists == False
 
 - name: copy uwsgi ini file
   template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
@@ -36,3 +30,5 @@
   with_items:
     - 'admin'
     - 'main'
+
+

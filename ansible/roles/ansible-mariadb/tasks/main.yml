@@ -2,9 +2,14 @@
 
 - include: install.yml
   tags: [mariadb]
+  when: install_flag == "yes"
 - include: configure.yml
   tags: [mariadb]
+  when: install_flag == "no" and global_db == 'mysql'
 - include: databases.yml
   tags: [mariadb]
+  when: install_flag == "no" and global_db == 'mysql'
 - include: users.yml
   tags: [mariadb]
+  when: install_flag == "no" and global_db == 'mysql'
+
