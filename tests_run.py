@@ -3,6 +3,7 @@ import jinja2
 import json
 import getpass
 
+from sys import argv
 from tempfile import NamedTemporaryFile
 from ansible.playbook import PlayBook
 from ansible import callbacks
@@ -12,9 +13,8 @@ run_type_opt = ["apache", "uwsgi"]
 db_opt = ["mysql", "postgresql"]
 fs_opt = ["tmpfs", "/dev/sdb", "dev/sdc"]
 
-os_username = "ubuntu"
-
 OPT = []
+os_username = getpass.getuser()
 password = getpass.getpass()
 
 
@@ -100,6 +100,7 @@ def run_deps():
 
 
 os.chdir("./ansible/")
-install()
+if sys.argv[1] != "--ignore_install"
+    install()
 run_deps()
 
