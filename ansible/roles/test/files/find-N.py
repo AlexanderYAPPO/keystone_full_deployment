@@ -37,16 +37,20 @@ def is_degr(tmp_X, tmp_Y, n_errors):
 
 
 def update_rps(rps):
-    with open(home_dir + "/nfind.json", 'r+') as settingsData:
-        settings = json.load(settingsData)
-        settings["Authenticate.keystone"][0]["runner"]["rps"] = int(rps)  # update rps
-        settings["Authenticate.keystone"][0]["runner"]["times"] = int(rps * times)
-        settingsData.seek(0)  # rewind to beginning of file
-        settingsData.write(json.dumps(settings,
-                                      indent=2,
-                                      sort_keys=True))
-        settingsData.truncate()
-
+	d = {"Authenticate.keystone" : [{}]}
+	d["Authenticate.keystone"][0]["context"] = {}
+	d["Authenticate.keystone"][0]["context"]["users"] = {}
+	d["Authenticate.keystone"][0]["context"]["users"]["project_domain"] = "default"
+	d["Authenticate.keystone"][0]["context"]["users"]["resource_management_workers"] = 30
+	d["Authenticate.keystone"][0]["context"]["users"]["tenants"] = 1
+	d["Authenticate.keystone"][0]["context"]["users"]["user_domain"] = "default"
+	d["Authenticate.keystone"][0]["context"]["users"]["users_per_tenant"] = 1
+	d["Authenticate.keystone"][0]["runner"] = {}
+	d["Authenticate.keystone"][0]["runner"]["rps"] = int(rps)
+	d["Authenticate.keystone"][0]["runner"]["times"] = int(rps * times)
+	d["Authenticate.keystone"][0]["runner"]["type"] = "rps"
+	with open(home_dir + "/nfind.json", 'wb') as outfile:
+		json.dump(d, outfile)
 
 def get_results(rps):
     update_rps(rps)  # rps changing
