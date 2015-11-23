@@ -98,9 +98,14 @@ def run_deps():
         run_playbook("run_tests", params)
         stop(params)
 
+def main():
+    if len(argv) > 1:
+        if argv[1] == "--ignore_install":
+            run_deps()
+            return
+    install()
+    run_deps()
 
 os.chdir("./ansible/")
-
-install()   
-run_deps()
+main()
 
