@@ -9,18 +9,20 @@
       sudo: yes
     - apt: name=python-dev state=present
       sudo: yes
-    - name: Install scipy Packages
+
+    - name: Install scipy Deps
       apt: name={{ item }} state=build-dep
       with_items: list_of_packages
-      sudo: yes
-    - apt: name=python-matplotlib state=present
-      sudo: yes
+    - name: Install scipy Packages
+      apt: name={{ item }} state=present
+      with_items: list_of_packages
+
   vars:
       global_db: ""
       list_of_packages:
           - python-numpy
           - python-scipy
-
+          - python-matplotlib
   roles:
     - role: postgresql  
       install_flag: "yes"
