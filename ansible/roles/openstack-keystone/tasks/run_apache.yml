@@ -11,12 +11,12 @@
 
 
 - name: check keystone slink is present
-  stat: path=/etc/nginx/sites-enabled/keystone
-  register: link_is_ok
+  stat: path=/etc/apache2/sites-available/wsgi-keystone.conf
+  register: ap_link_is_ok
 
 - shell: "ln -s /etc/apache2/sites-available/wsgi-keystone.conf /etc/apache2/sites-enabled"
   sudo: yes
-  when: link_is_ok.stat.exists == False
+  when: ap_link_is_ok.stat.exists == False
 
 - include: wsgi_configuration.yml
 

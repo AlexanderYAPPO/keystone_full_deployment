@@ -54,6 +54,7 @@
 - name: set .my.cnf root blank password for temporary mariadb
   lineinfile: dest=/root/.my.cnf regexp='^password=' line='password=' owner=root group=root mode=0600
   when: datadir_is_ok.stat.exists == False
+  ignore_errors: yes
 
 - name: start mariadb
   service: name=mysql state=started
