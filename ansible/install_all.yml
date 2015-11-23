@@ -20,6 +20,7 @@
   vars:
       global_db: ""
       list_of_packages:
+          - build-dep
           - libblas-dev
           - liblapack-dev
           - libatlas-base-dev
