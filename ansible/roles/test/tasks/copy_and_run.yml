@@ -1,5 +1,5 @@
 - name: copy find-N script
-  template: src=roles/test/templates/find-N.py.j2 dest=/home/{{ global_os_user }}/find-N.py owner={{ global_os_user }} group={{ global_os_user }} mode=0777
+  template: src=roles/test/files/find-N.py.j2 dest=/home/{{ global_os_user }}/find-N.py owner={{ global_os_user }} group={{ global_os_user }} mode=0777
 
 - name: copy nfind.json
   template: src=roles/test/files/nfind.json.j2 dest=/home/{{ global_os_user }}/nfind.json owner={{ global_os_user }} group={{ global_os_user }} mode=0777
