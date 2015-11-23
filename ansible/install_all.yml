@@ -9,12 +9,21 @@
       sudo: yes
     - apt: name=python-dev state=present
       sudo: yes
+
+    - name: Install Packages
+      apt: name={{ item }} state=present
+      with_items: list_of_packages
     - pip: name=numpy
     - pip: name=scipy
     - pip: name=matplotlib
 
   vars:
       global_db: ""
+      list_of_packages:
+          - libblas-dev
+          - liblapack-dev
+          - libatlas-base-dev
+          - gfortran
   roles:
     - role: postgresql  
       install_flag: "yes"
