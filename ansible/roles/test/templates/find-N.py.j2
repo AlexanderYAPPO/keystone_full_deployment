@@ -12,7 +12,7 @@ os_user = sys.argv[1]
 test_num = sys.argv[2]
 
 home_dir = "/home/%s" % os_user
-rally_path = home_dir + "/rally/bin/rally"
+rally_path = "%s/rally/bin/rally" % home_dir
 results_dir = home_dir + "/results/" + str(test_num)
 allowed_value = 0.01
 times = 120
