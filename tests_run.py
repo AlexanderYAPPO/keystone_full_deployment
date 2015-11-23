@@ -100,7 +100,7 @@ def run_deps():
 
 
 os.chdir("./ansible/")
-if sys.argv[1] != "--ignore_install"
-    install()
+
+install()   
 run_deps()
 
