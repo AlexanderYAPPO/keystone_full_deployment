@@ -9,26 +9,18 @@
       sudo: yes
     - apt: name=python-dev state=present
       sudo: yes
-
     - name: Install scipy Packages
       apt: name={{ item }} state=build-dep
       with_items: list_of_packages
-#    - name: Install apack Packages
-#      apt: name=build-dep {{ item }} state=present
-#      with_items: fortran_list
-
+      sudo: yes
+    - apt: name=python-matplotlib state=present
+      sudo: yes
   vars:
       global_db: ""
       list_of_packages:
           - python-numpy
           - python-scipy
-          - python-matplotlib
-      fortran_list:
-          - libblas-dev
-          - liblapack-dev
-          - libatlas-base-dev
-          - gfortran
-          - libfreetype6-dev
+
   roles:
     - role: postgresql  
       install_flag: "yes"
