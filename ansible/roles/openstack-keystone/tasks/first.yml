@@ -29,10 +29,8 @@
 - include: configuration.yml
 
 - include: install_apache.yml
-  when: install_flag == "yes"
 
 - include: install_uwsgi.yml
-  when: install_flag == "yes"
 
 
 

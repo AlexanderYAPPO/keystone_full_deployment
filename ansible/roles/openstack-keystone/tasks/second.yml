@@ -12,9 +12,6 @@
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
 
-#- include: run_keystone.yml
-#  when: global_run_type == "eventlet"
-
 - include: run_uwsgi.yml
   when: global_run_type == "uwsgi"
 
