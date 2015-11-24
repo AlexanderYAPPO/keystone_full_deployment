@@ -11,7 +11,3 @@ global_mariadb_password: tester
 global_os_user: ubuntu
 global_postgresql_password: tester
 global_skip: False
-#global_run_type: "shit"
-#global_db: "shit"
-#global_fs_type: "shit"
-#global_fs_src: "shit"
