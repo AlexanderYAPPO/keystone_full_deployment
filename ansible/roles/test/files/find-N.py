@@ -12,12 +12,12 @@ UPPER_BOUND = 20  # of the binary search
 THRESHOLD = 0.01
 TIMES = 120
 DEP_NAME = "existing"
-os_user = sys.argv[1]
-test_num = sys.argv[2]
+OS_USER = sys.argv[1]
+TEST_NUMB = sys.argv[2]
 
-home_dir = "/home/%s" % os_user
-rally_path = "%s/rally/bin/rally" % home_dir
-results_dir = home_dir + "/results/" + str(test_num)
+HOME_DIR = "/home/%s" % OS_USER
+RALLY_PATH = "%s/rally/bin/rally" % HOME_DIR
+RESULTS_DIR = HOME_DIR + "/results/" + str(TEST_NUMB)
 
 ID_DICT = {}  # {rps : id}
 
@@ -51,23 +51,23 @@ def update_rps(rps):
     d["Authenticate.keystone"][0]["runner"]["rps"] = int(rps)
     d["Authenticate.keystone"][0]["runner"]["times"] = int(rps * TIMES)
     d["Authenticate.keystone"][0]["runner"]["type"] = "rps"
-    with open(home_dir + "/nfind.json", 'wb') as outfile:
+    with open(HOME_DIR + "/nfind.json", 'wb') as outfile:
         json.dump(d, outfile)
 
 
 def get_results(rps):
     update_rps(rps)  # rps changing
-    p1 = Popen([rally_path, "deployment", "use", DEP_NAME], stdout=PIPE)
+    p1 = Popen([RALLY_PATH, "deployment", "use", DEP_NAME], stdout=PIPE)
     p1.wait()
-    p2 = Popen([rally_path,
+    p2 = Popen([RALLY_PATH,
                 "task",
                 "start",
-                home_dir + "/nfind.json"],
+                HOME_DIR + "/nfind.json"],
                stdout=PIPE)
     p2.wait()
     txt = p2.communicate()[0].decode("utf-8")
     id = txt.split("rally task results ")[1].replace("\n", "")
-    result = check_output("%s task results %s" % (rally_path, id), shell=True)
+    result = check_output("%s task results %s" % (RALLY_PATH, id), shell=True)
 
     return (id, result.decode("utf-8"))
 
@@ -75,9 +75,9 @@ def get_results(rps):
 def save_results(rps):
     id = ID_DICT[rps]
     json_data = get_results(rps)[1]
-    with open(results_dir + '/%s_j.json' % rps, 'wb') as outfile:
+    with open(RESULTS_DIR + '/%s_j.json' % rps, 'wb') as outfile:
         json.dump(json_data, outfile)
-    report_args = (rally_path, id, results_dir + '/%s_h.html' % rps)
+    report_args = (RALLY_PATH, id, RESULTS_DIR + '/%s_h.html' % rps)
     check_output("%s task report %s --out %s" % report_args, shell=True)
 
 
@@ -101,21 +101,21 @@ def read_json(rps, save):
 
 def bin_search():
     left = 1
-    rigth = UPPER_BOUND
+    right = UPPER_BOUND
     m = UPPER_BOUND / 2
     while True:
-        m = int((left + rigth) / 2)
+        m = int((left + right) / 2)
         if read_json(m, False):
-            rigth = m
+            right = m
         else:
             left = m + 1
-        if left == rigth:
+        if left == right:
             return m
 
 
 if __name__ == "__main__":
-    create_dir("%s/results" % home_dir)
-    create_dir(results_dir)
+    create_dir("%s/results" % HOME_DIR)
+    create_dir(RESULTS_DIR)
     N = bin_search()
     read_json(N - 1, True)
     save_results(N)
