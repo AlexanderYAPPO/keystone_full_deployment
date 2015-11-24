@@ -11,7 +11,7 @@ from subprocess import Popen, PIPE, check_output
 UPPER_BOUND = 20  # of the binary search
 THRESHOLD = 0.01
 TIMES = 120
-
+DEP_NAME = "existing"
 os_user = sys.argv[1]
 test_num = sys.argv[2]
 
@@ -20,6 +20,7 @@ rally_path = "%s/rally/bin/rally" % home_dir
 results_dir = home_dir + "/results/" + str(test_num)
 
 ID_DICT = {}  # {rps : id}
+
 
 def create_dir(path):
     if not os.path.exists(path):
@@ -38,7 +39,7 @@ def is_degr(tmp_X, tmp_Y, n_errors):
 
 
 def update_rps(rps):
-    d = {"Authenticate.keystone" : [{}]}
+    d = {"Authenticate.keystone": [{}]}
     d["Authenticate.keystone"][0]["context"] = {}
     d["Authenticate.keystone"][0]["context"]["users"] = {}
     d["Authenticate.keystone"][0]["context"]["users"]["project_domain"] = "default"
@@ -48,14 +49,15 @@ def update_rps(rps):
     d["Authenticate.keystone"][0]["context"]["users"]["users_per_tenant"] = 1
     d["Authenticate.keystone"][0]["runner"] = {}
     d["Authenticate.keystone"][0]["runner"]["rps"] = int(rps)
-    d["Authenticate.keystone"][0]["runner"]["TIMES"] = int(rps * TIMES)
+    d["Authenticate.keystone"][0]["runner"]["times"] = int(rps * TIMES)
     d["Authenticate.keystone"][0]["runner"]["type"] = "rps"
     with open(home_dir + "/nfind.json", 'wb') as outfile:
         json.dump(d, outfile)
 
+
 def get_results(rps):
     update_rps(rps)  # rps changing
-    p1 = Popen([rally_path, "deployment", "use", "existing"], stdout=PIPE)
+    p1 = Popen([rally_path, "deployment", "use", DEP_NAME], stdout=PIPE)
     p1.wait()
     p2 = Popen([rally_path,
                 "task",
@@ -84,12 +86,13 @@ def read_json(rps, save):
     ID_DICT[rps] = id
     if save:
         save_results(rps)
+        return
     tmp_X = []
     tmp_Y = []
     n_errors = 0
     full_json = json.loads(json_data)[0]
     for result in full_json["result"]:
-        tmp_X.append(result["TIMEStamp"])
+        tmp_X.append(result["timestamp"])
         tmp_Y.append(float(result["duration"]))
         if len(result["error"]) != 0:
             n_errors += 1
@@ -102,7 +105,7 @@ def bin_search():
     m = UPPER_BOUND / 2
     while True:
         m = int((left + rigth) / 2)
-        if r(m):
+        if read_json(m, False):
             rigth = m
         else:
             left = m + 1
@@ -110,7 +113,7 @@ def bin_search():
             return m
 
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     create_dir("%s/results" % home_dir)
     create_dir(results_dir)
     N = bin_search()
