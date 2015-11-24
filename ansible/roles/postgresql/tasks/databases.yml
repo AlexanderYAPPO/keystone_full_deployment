@@ -20,7 +20,6 @@
   service:
     name: postgresql
     state: stopped
-  when: install_flag == "yes"
 
 #- name: PostgreSQL | Add hstore to the databases with the requirement
 #  sudo: yes
