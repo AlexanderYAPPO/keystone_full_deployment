@@ -1,6 +1,5 @@
 import os
 import jinja2
-import json
 import getpass
 
 from sys import argv
@@ -9,13 +8,16 @@ from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
 
-run_type_opt = ["apache", "uwsgi"]
-db_opt = ["mysql", "postgresql"]
-fs_opt = ["tmpfs", "/dev/sdb", "dev/sdc"]
+WEB_SERVERS = ["apache", "uwsgi"]
+DBMS = ["mysql", "postgresql"]  # database type
+FS = ("tmpfs",
+          "/dev/sdb",  # device name
+          "/dev/sdc"  # SSD can be used
+          )
 
-OPT = []
-os_username = getpass.getuser()
-password = getpass.getpass()
+OPT = []  # a list of all options
+USERNAME = getpass.getuser()  # current user's username
+PASSWORD = getpass.getpass()  # sudo pasword
 
 
 def run_playbook(name, extra):
@@ -24,88 +26,56 @@ def run_playbook(name, extra):
     stats = callbacks.AggregateStats()
     runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
                                                   verbose=utils.VERBOSITY)
-
-    inventory = """
-    [customer]
-    {{ public_ip_address }}
-    """
-
-    inventory_template = jinja2.Template(inventory)
-    rendered_inventory = inventory_template.render({
-        'public_ip_address': '127.0.0.1',
-    })
-
-    hosts = NamedTemporaryFile(delete=False)
-    hosts.write(rendered_inventory)
-    hosts.close()
-
-    hosts = NamedTemporaryFile(delete=False)
-    hosts.write(rendered_inventory)
-    hosts.close()
     pb = PlayBook(
         playbook='/home/%s/keystone_full_deployment/ansible/%s.yml'
-                 % (os_username, name),
-        host_list=hosts.name,
-        remote_user=os_username,
+                 % (USERNAME, name),
+        host_list="/home/%s/keystone_full_deployment/ansible/hosts"% USERNAME,
+        remote_user=USERNAME,
         callbacks=playbook_cb,
         runner_callbacks=runner_cb,
         stats=stats,
-        private_key_file='/home/%s/.ssh/id_rsa' % os_username,
+        private_key_file='/home/%s/.ssh/id_rsa' % USERNAME,
         become=True,
-        become_pass="%s\n" % password,
+        become_pass="%s\n" % PASSWORD,
         become_method='sudo',
         extra_vars=extra
     )
     results = pb.run()
     playbook_cb.on_stats(pb.stats)
-    os.remove(hosts.name)
     return results
 
 
-def get_fs_type(src):
-    if "tmpfs":
-        return "tmpfs"
-    return "ext4"
-
-
-test_num = 1
-for run_type in run_type_opt:
-    for db in db_opt:
-        for fs_src in fs_opt:
-            PARAMS = {"global_run_type": run_type,
-                      "global_db": db,
-                      "global_fs_type": get_fs_type(fs_src),
-                      "global_fs_src": fs_src,
-                      "test_num": str(test_num)
-                      }
-            params_s = json.dumps(PARAMS)
-            OPT.append(PARAMS)
-            test_num += 1
-
-
-def install():
-    run_playbook("install_all", {})
-
-
-def stop(params):
-    run_playbook("stop_all", params)
+def gen_opts():
+    test_num = 1
+    for run_type in WEB_SERVERS:
+        for db in DBMS:
+            for fs_src in FS:
+                fs_type = "tmpfs" if fs_src == "tmpfs" else "ext4"
+                PARAMS = {"global_run_type": run_type,
+                          "global_db": db,
+                          "global_fs_type": fs_type,
+                          "global_fs_src": fs_src,
+                          "test_num": str(test_num)
+                          }
+                OPT.append(PARAMS)
+                test_num += 1
 
 
 def run_deps():
     for params in OPT:
-        stop(params)
+        run_playbook("stop_all", params)
         run_playbook("run_dep", params)
         run_playbook("run_tests", params)
-        stop(params)
+        run_playbook("stop_all", params)
 
-def main():
+
+if __name__ == "__main__":
+    os.chdir("./ansible/")
+    gen_opts()
     if len(argv) > 1:
         if argv[1] == "--ignore_install":
             run_deps()
-            return
-    install()
-    run_deps()
-
-os.chdir("./ansible/")
-main()
+    else:
+        run_playbook("install_all", {})
+        run_deps()
 
