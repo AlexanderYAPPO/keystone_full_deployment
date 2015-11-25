@@ -1,5 +1,4 @@
-- name: copy find-N script
-  template: src=roles/test/files/find-N.py dest=/home/{{ global_os_user }}/find-N.py owner={{ global_os_user }} group={{ global_os_user }} mode=0777
+- copy: src=roles/test/files/find-N.py dest=/home/{{ global_os_user }}/find-N.py owner={{ global_os_user }} group={{ global_os_user }} mode=0777      
 
 - shell: "python /home/{{ global_os_user }}/find-N.py {{ global_os_user }} {{test_num}}"
   sudo: yes
