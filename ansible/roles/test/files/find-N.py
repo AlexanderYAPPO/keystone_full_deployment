@@ -117,7 +117,7 @@ if __name__ == "__main__":
     create_dir("%s/results" % HOME_DIR)
     create_dir(RESULTS_DIR)
     N = bin_search()
-    read_json(N - 1, True)
+    #read_json(N - 1, True)
     save_results(N)
     read_json(N + 1, True)
     read_json(2 * N, True)
