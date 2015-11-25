@@ -11,8 +11,6 @@ Wasn't able to intall from official mariadb repositories
 Mariadb didn't start if some are not deleted
 
 ## Usage
-Keystone can be deployed using Vagrant via included Vagrantfile or on any other machine by running
-ansible/deploy_keystone.yml Ansible playbook.
 
 Keystone can be deployed and tests can be started by running
 tests_run.py script.
