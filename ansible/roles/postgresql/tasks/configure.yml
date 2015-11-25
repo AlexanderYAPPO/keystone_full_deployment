@@ -1,4 +1,22 @@
 # file: postgresql/tasks/configure.yml
+- mount: name="/var/lib/postgresql/" src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
+  sudo: yes
+
+- name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
+  shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
+  sudo: yes
+  sudo_user: "{{ postgresql_service_user }}"
+
+
+
+- name: Rules
+  command: chown postgres:postgres {{postgresql_data_directory}} -R
+  sudo: yes
+
+
+- name: Change owners
+  shell: "chown -R postgres:postgres {{postgresql_data_directory}}"
+  sudo: yes
 
 - name: PostgreSQL | Make sure the postgres data directory exists
   file:
@@ -85,36 +103,6 @@
     group: "{{ postgresql_service_group }}"
     mode: 0755
   sudo_user: "{{ postgresql_service_user }}"
-
-
-- mount: name="/var/lib/postgresql/" src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
-  sudo: yes
-
-- name: PostgreSQL | Reset the cluster - drop the existing one
-  shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}
-  sudo: yes
-  sudo_user: "{{ postgresql_service_user }}"
-
-- name: PostgreSQL | stop PostgreSQL ###
-  service:
-    name: postgresql
-    state: stopped
-
-- name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
-  shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
-  sudo: yes
-  sudo_user: "{{ postgresql_service_user }}"
-
-
-
-- name: Rules
-  command: chown postgres:postgres {{postgresql_data_directory}} -R
-  sudo: yes
-
-
-- name: Change owners
-  shell: "chown -R postgres:postgres {{postgresql_data_directory}}"
-  sudo: yes
 
 - name: PostgreSQL | start PostgreSQL
   service:
