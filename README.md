@@ -15,5 +15,5 @@ Keystone can be deployed using Vagrant via included Vagrantfile or on any other 
 ansible/deploy_keystone.yml Ansible playbook.
 
 Keystone can be deployed and tests can be started by running
-tests_run.py script
+tests_run.py script.
 If you want to run tests without keystone and rally installation you should use --ignore_install argument
