@@ -11,7 +11,7 @@
 
 
 - name: check keystone slink is present
-  stat: path=/etc/apache2/sites-available/wsgi-keystone.conf
+  stat: path=/etc/apache2/sites-enabled/keystone
   register: ap_link_is_ok
 
 - shell: "ln -s /etc/apache2/sites-available/wsgi-keystone.conf /etc/apache2/sites-enabled"
@@ -23,5 +23,4 @@
 - name: Restart Apache2
   service: name=apache2 state=restarted
   sudo: yes
-  when: install_flag == "no"
 

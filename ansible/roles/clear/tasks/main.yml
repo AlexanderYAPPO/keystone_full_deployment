@@ -1,11 +1,10 @@
 - name: Stop nginx
   service: name=nginx state=stopped
-  #when: global_run_type == "uwsgi"
+  ignore_errors: yes
 
 - name: Stop apache2
   service: name=apache2 state=stopped
-  #when: global_run_type == "apache"
-
+  ignore_errors: yes
 
 - name: Stop uwsgi
   shell: "kill -HUP `pidof uwsgi` &> /dev/null"
@@ -15,16 +14,10 @@
 - name: MariaDB| delete database
   mysql_db: name=keystone login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }} state=absent
   ignore_errors: yes
-  #when: global_db == "mysql"
-
-
-- name: Stop postgresql
-  service: name=postgresql state=stopped
-  #when: global_db == "postgresql"
 
 - name: Start postgresql
   service: name=postgresql state=started
-  #when: global_db == "postgresql"
+  ignore_errors: yes
 
 - name: PostgreSQL | Delete database
   postgresql_db:
@@ -37,7 +30,6 @@
   sudo: yes
   sudo_user: "{{postgresql_admin_user}}"
   ignore_errors: yes
-  #when: global_db == "postgresql"
 
 - name: PostgreSQL | delete cluster
   shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}

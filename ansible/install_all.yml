@@ -7,12 +7,12 @@
       sudo: yes
     - apt: name=git state=present
       sudo: yes
-    - apt: name=python-dev state=present
-      sudo: yes
+    #- apt: name=python-dev state=present
+    #  sudo: yes
 
-    - name: Install scipy Deps
-      apt: name={{ item }} state=build-dep
-      with_items: list_of_packages
+    #- name: Install scipy Deps
+    #  apt: name={{ item }} state=build-dep
+    #  with_items: list_of_packages
     - name: Install scipy Packages
       apt: name={{ item }} state=present
       with_items: list_of_packages
