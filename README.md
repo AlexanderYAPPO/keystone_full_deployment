@@ -13,3 +13,7 @@ Mariadb didn't start if some are not deleted
 ## Usage
 Keystone can be deployed using Vagrant via included Vagrantfile or on any other machine by running
 ansible/deploy_keystone.yml Ansible playbook.
+
+Keystone can be deployed and tests can be started by running
+tests_run.py script
+If you want to run tests without keystone and rally installation use --ignore_install parameter
