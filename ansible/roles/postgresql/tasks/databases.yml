@@ -11,7 +11,7 @@
   sudo: yes
   sudo_user: "{{postgresql_admin_user}}"
 
-- name: PostgreSQL | Ensure PostgreSQL is stopped
+- name: PostgreSQL | Ensure PostgreSQL is started
   service:
     name: postgresql
     state: started
