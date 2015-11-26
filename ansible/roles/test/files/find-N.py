@@ -116,13 +116,11 @@ def bin_search():
 if __name__ == "__main__":
     create_dir("%s/results" % HOME_DIR)
     create_dir(RESULTS_DIR)
-    with open(RESULTS_DIR+"/works.txt", "w") as x:
-        x.write("works")
-    #N = bin_search()
-    #read_json(N - 1, True)
-    #save_results(N)
-    #read_json(N + 1, True)
-    #read_json(2 * N, True)
-    #read_json(3 * N, True)
-    #read_json(10 * N, True)
+    N = bin_search()
+    read_json(N - 1, True)
+    save_results(N)
+    read_json(N + 1, True)
+    read_json(2 * N, True)
+    read_json(3 * N, True)
+    read_json(10 * N, True)
 
