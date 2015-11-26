@@ -108,9 +108,9 @@ def bin_search():
         if read_json(m, False):
             right = m
         else:
-            left = m + 1
-        if left == right:
-            return m
+            left = m
+        if right == left + 1:
+            return left
 
 
 if __name__ == "__main__":
