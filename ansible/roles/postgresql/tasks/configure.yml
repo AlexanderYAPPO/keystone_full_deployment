@@ -5,7 +5,7 @@
 - name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
   shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
   sudo: yes
-  sudo_user: "{{ postgresql_service_user }}"
+#  sudo_user: "{{ postgresql_service_user }}"
 
 
 

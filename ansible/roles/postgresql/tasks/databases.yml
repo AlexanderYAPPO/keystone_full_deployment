@@ -1,10 +1,5 @@
 # file: postgresql/tasks/databases.yml
 
-- name: PostgreSQL | Ensure PostgreSQL is running
-  service:
-    name: postgresql
-    state: started
-
 - name: PostgreSQL | Create database
   postgresql_db:
     name: keystone
@@ -19,7 +14,7 @@
 - name: PostgreSQL | Ensure PostgreSQL is stopped
   service:
     name: postgresql
-    state: stopped
+    state: started
 
 #- name: PostgreSQL | Add hstore to the databases with the requirement
 #  sudo: yes

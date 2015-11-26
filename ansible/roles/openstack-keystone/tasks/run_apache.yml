@@ -11,7 +11,7 @@
 
 
 - name: check keystone slink is present
-  stat: path=/etc/apache2/sites-enabled/keystone
+  stat: path=/etc/apache2/sites-enabled/wsgi-keystone.conf
   register: ap_link_is_ok
 
 - shell: "ln -s /etc/apache2/sites-available/wsgi-keystone.conf /etc/apache2/sites-enabled"
