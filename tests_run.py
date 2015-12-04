@@ -10,7 +10,7 @@ from ansible import callbacks
 from ansible import utils
 
 WEB_SERVERS = ["apache", "uwsgi"]
-DBMS = ["mysql"]  # database type
+DBMS = ["mysql", "postgresql"]  # database type
 FS = ("/dev/sdb",
           "tmpfs",  # device name
           "/dev/sdc"  # SSD can be used
@@ -51,7 +51,6 @@ def gen_opts():
     for run_type in WEB_SERVERS:
         for db in DBMS:
             for fs_src in FS:
-                fs_src = "/dev/sdb"
                 fs_type = "tmpfs" if fs_src == "tmpfs" else "ext4"
                 PARAMS = {"global_run_type": run_type,
                           "global_db": db,
