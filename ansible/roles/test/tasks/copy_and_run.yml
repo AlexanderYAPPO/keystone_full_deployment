@@ -2,5 +2,6 @@
 - shell: "python /home/{{ global_os_user }}/find-N.py {{ global_os_user }} {{test_num}}"
   sudo: yes
   sudo_user: "{{global_os_user}}"
+  ignore_errors: True
 
 - copy: content="{{global_db}}\n{{ global_run_type}}\n{{global_fs_src}}" dest=/home/{{ global_os_user }}/results/{{ test_num }}/params.txt force=no

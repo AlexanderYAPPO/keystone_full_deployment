@@ -1,34 +1,12 @@
 - name: Stop nginx
   service: name=nginx state=stopped
-  ignore_errors: yes
 
 - name: Stop apache2
   service: name=apache2 state=stopped
-  ignore_errors: yes
 
 - name: Stop uwsgi
   shell: "kill -HUP `pidof uwsgi` &> /dev/null"
   sudo: yes
-  ignore_errors: yes
-
-- name: MariaDB| delete database
-  mysql_db: name=keystone login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }} state=absent
-  ignore_errors: yes
-
-- name: Start postgresql
-  service: name=postgresql state=started
-  ignore_errors: yes
-
-- name: PostgreSQL | Delete database
-  postgresql_db:
-    name: keystone
-    owner: keystone
-    port: "{{postgresql_port}}"
-    state: absent
-    login_user: "{{postgresql_admin_user}}"
-    login_password: "{{global_postgresql_password }}"
-  sudo: yes
-  sudo_user: "{{postgresql_admin_user}}"
   ignore_errors: yes
 
 - name: PostgreSQL | delete cluster
@@ -36,30 +14,18 @@
   sudo: yes
   ignore_errors: yes
 
-
-#- name: Stop mysql
-#  shell: "killall mysqld"
-#  sudo: yes
-#  #when: global_db == "mysql"
-#  ignore_errors: yes
-
-- shell: sudo pkill -IO mysqld || true
-
 - name: stop mariadb
   service: name=mysql state=stopped
-  #when: global_db == "mysql"
+  sudo: yes
+  ignore_errors: yes
 
 - name: Stop postgresql
   service: name=postgresql state=stopped
+  sudo: yes
   #when: global_db == "postgresql"
-
-
-
 
 - mount: name="{{mariadb_datadir}}" src={{global_fs_src}} fstype={{global_fs_type}} state=unmounted
   sudo: yes
-  #when: global_db == "mysql"
 
 - mount: name="/var/lib/postgresql" src={{global_fs_src}} fstype={{global_fs_type}} state=unmounted
   sudo: yes
-  #when: global_db == "postgresql"

@@ -46,36 +46,15 @@
   command: mysql_install_db --user=mysql --ldata={{mariadb_datadir}}
   when: datadir_is_ok.stat.exists == False
 
-- name: start temporary mariadb
-  shell: "mysqld_safe --datadir={{mariadb_datadir}} --user=mysql & echo $!"
-  register: mariadb_temp_instance
-  when: datadir_is_ok.stat.exists == False
-
 - name: set .my.cnf root blank password for temporary mariadb
   lineinfile: dest=/root/.my.cnf regexp='^password=' line='password=' owner=root group=root mode=0600
   when: datadir_is_ok.stat.exists == False
-  ignore_errors: yes
-
-- name: start mariadb
-  service: name=mysql state=started
-  when: datadir_is_ok.stat.exists
 
 - meta: flush_handlers
-
-# reset debian-sys-maint user password
-- name: set debian-sys-maint user account
-  mysql_user: name='debian-sys-maint' password={{mariadb_debsysmaint_password}} priv=*.*:ALL state=present
-  when: mariadb_debsysmaint_password is defined and mariadb_debsysmaint_password
 
 - name: set debian-sys-maint configuration file
   template: src=debian.cnf.j2 dest=/etc/mysql/debian.cnf owner=root group=root mode=0600 backup=yes
   when: mariadb_debsysmaint_password is defined and mariadb_debsysmaint_password
-
-# kill temp mariadb if present
-- name: exit temporary started
-  command: kill {{mariadb_temp_instance.stdout_lines[0]}}
-  ignore_errors: yes
-  when: datadir_is_ok.stat.exists == False
 
 - name: start mariadb
   service: name=mysql state=started
@@ -107,12 +86,13 @@
   mysql_db: "name='test' state=absent"
 
 - name: ensure mariadb is started and enabled on boot
-  service: name={{mariadb_service_name}} state=started enabled=yes
-  when: mariadb_manage_service
-  changed_when: false
+  service: name={{mariadb_service_name}} state=started
 
 - name: Delete InnoDB ib_logfile0
   command: rm /var/lib/mysql/ib_logfile0
 
 - name: Delete InnoDB ib_logfile1
   command: rm /var/lib/mysql/ib_logfile1
+
+- name: set debian-sys-maint user account
+  mysql_user: name='debian-sys-maint' password='{{mariadb_debsysmaint_password}}' priv=*.*:ALL state=present

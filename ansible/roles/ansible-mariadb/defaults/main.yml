@@ -22,7 +22,7 @@ mariadb_install_tools: False
 mariadb_user_home: /root
 mariadb_root_username: root
 mariadb_root_password: root
-mariadb_debsysmaint_password:
+mariadb_debsysmaint_password: root
 mariadb_client_port: 3306
 mariadb_uid:
 mariadb_gid:
@@ -63,8 +63,9 @@ mariadb_default_config:
       - query_cache_limit = 1M
       - query_cache_size = 16M
       - general_log_file = /var/log/mysql/mysql.log
-      - general_log = 0
-      - slow_query_log = 0
+      - general_log = 1
+      - log-error = /var/log/mysql/error.log
+      - slow_query_log = 1
       - slow_query_log_file = /var/log/mysql/mysql-slow.log
       - long_query_time = 1
       - log_queries_not_using_indexes = False

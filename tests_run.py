@@ -2,7 +2,7 @@
 import os
 import jinja2
 import getpass
-
+import sys
 from sys import argv
 from tempfile import NamedTemporaryFile
 from ansible.playbook import PlayBook
@@ -11,8 +11,8 @@ from ansible import utils
 
 WEB_SERVERS = ["apache", "uwsgi"]
 DBMS = ["mysql", "postgresql"]  # database type
-FS = ("tmpfs",
-          "/dev/sdb",  # device name
+FS = ("/dev/sdb",
+          "tmpfs",  # device name
           "/dev/sdc"  # SSD can be used
           )
 
@@ -51,6 +51,7 @@ def gen_opts():
     for run_type in WEB_SERVERS:
         for db in DBMS:
             for fs_src in FS:
+                fs_src = "/dev/sdb"
                 fs_type = "tmpfs" if fs_src == "tmpfs" else "ext4"
                 PARAMS = {"global_run_type": run_type,
                           "global_db": db,
@@ -69,10 +70,10 @@ def run_deps():
         run_playbook("run_tests", params)
         run_playbook("stop_all", params)
 
-
 if __name__ == "__main__":
     os.chdir("./ansible/")
     gen_opts()
+    print OPT
     if len(argv) > 1:
         if argv[1] == "--ignore_install":
             run_deps()
