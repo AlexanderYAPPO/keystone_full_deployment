@@ -10,7 +10,7 @@ from ansible import callbacks
 from ansible import utils
 
 WEB_SERVERS = ["apache", "uwsgi"]
-DBMS = ["mysql", "postgresql"]  # database type
+DBMS = ["mysql"]  # database type
 FS = ("/dev/sdb",
           "tmpfs",  # device name
           "/dev/sdc"  # SSD can be used
