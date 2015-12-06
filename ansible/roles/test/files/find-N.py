@@ -7,8 +7,6 @@ matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
 from subprocess import Popen, PIPE, check_output
-from StringIO import StringIO
-from threading  import Thread
 
 UPPER_BOUND = 20  # of the binary search
 THRESHOLD = 0.01
@@ -56,54 +54,21 @@ def update_rps(rps):
     with open(HOME_DIR + "/nfind.json", 'wb') as outfile:
         json.dump(d, outfile)
 
-def tee(infile, *files):
-    """Print `infile` to `files` in a separate thread."""
-    def fanout(infile, *files):
-        for line in iter(infile.readline, ''):
-            for f in files:
-                f.write(line)
-        infile.close()
-    t = Thread(target=fanout, args=(infile,)+files)
-    t.daemon = True
-    t.start()
-    return t
-
-def teed_call(cmd_args, **kwargs):    
-    stdout, stderr = [kwargs.pop(s, None) for s in 'stdout', 'stderr']
-    p = Popen(cmd_args,
-              stdout=PIPE if stdout is not None else None,
-              stderr=PIPE if stderr is not None else None,
-              **kwargs)
-    threads = []
-    if stdout is not None: threads.append(tee(p.stdout, stdout, sys.stdout))
-    if stderr is not None: threads.append(tee(p.stderr, stderr, sys.stderr))
-    for t in threads: t.join() # wait for IO completion
-    return p.wait()
-
 def get_results(rps):
     update_rps(rps)  # rps changing
     p1 = Popen([RALLY_PATH, "deployment", "use", DEP_NAME], stdout=PIPE)
     p1.wait()
-
-
-    fout, ferr = StringIO(), StringIO()
-    exitcode = teed_call([RALLY_PATH,
+    p2 = Popen([RALLY_PATH,
                 "task",
                 "start",
-                HOME_DIR + "/nfind.json"], stdout=fout, stderr=ferr)
-    stdout = fout.getvalue()
-    stderr = ferr.getvalue()
-    #p2.wait()
-    with open("%s/err_%s.txt" % (RESULTS_DIR, rps), "w") as f:
-        f.write(stderr)
-    #txt = p2.communicate()[0].decode("utf-8")
-    txt = stdout
-    if exitcode:
+                HOME_DIR + "/nfind.json"],
+               stdout=PIPE)
+    p2.wait()
+    txt = p2.communicate()[0].decode("utf-8")
+    if p2.returncode:
         return (False, False)
-    #    sys.exit(1)
     id = txt.split("rally task results ")[1].replace("\n", "")
     result = check_output("%s task results %s" % (RALLY_PATH, id), shell=True)
-
     return (id, result.decode("utf-8"))
 
 
