@@ -72,7 +72,6 @@ def run_deps():
 if __name__ == "__main__":
     os.chdir("./ansible/")
     gen_opts()
-    print OPT
     if len(argv) > 1:
         if argv[1] == "--ignore_install":
             run_deps()
