@@ -78,9 +78,6 @@ def bin_search(params):
             return left
 
 
-
-
-
 if __name__ == "__main__":
     os.chdir("./ansible/")
     gen_opts()
