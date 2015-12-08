@@ -1,4 +1,8 @@
 - hosts: all
+  vars:
+      postgresql_admin_user: "postgres"
+      install_flag: "no"
+      global_db: "postgresql"
   vars_files:
     - defaults/main.yml
     - vars/test.yml

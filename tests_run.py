@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 import os
-import jinja2
 import getpass
-import sys
 from sys import argv
-from tempfile import NamedTemporaryFile
 from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
-
+from find_n import DegradationCheck
+UPPER_BOUND = 20
 WEB_SERVERS = ["apache", "uwsgi"]
 DBMS = ["mysql", "postgresql"]  # database type
 FS = ("/dev/sdb",
           "tmpfs",  # device name
-          "/dev/sdc"  # SSD can be used
+          "/dev/sdc"  # SSD
           )
 
 OPT = []  # a list of all options
@@ -61,22 +59,53 @@ def gen_opts():
                 OPT.append(PARAMS)
                 test_num += 1
 
-
-def run_deps():
-    for params in OPT:
+def bin_search(params):
+    left = 1
+    right = UPPER_BOUND
+    m = UPPER_BOUND / 2
+    while True:
+        m = int((left + right) / 2)
         run_playbook("stop_all", params)
         run_playbook("run_dep", params)
-        run_playbook("run_tests", params)
+        if check_obj.read_json(m):
+            right = m
+        else:
+            left = m
+        print ("===============")
+        print(m)
         run_playbook("stop_all", params)
+        if right == left + 1:
+            return left
+
+
+
+
 
 if __name__ == "__main__":
     os.chdir("./ansible/")
     gen_opts()
-    print OPT
     if len(argv) > 1:
         if argv[1] == "--ignore_install":
-            run_deps()
+            for params in OPT:
+                check_obj = DegradationCheck(params)
+                N = bin_search(params)
+                print(N)
+                check_obj.read_json(N)
+                if N - 1 != 0:
+                    check_obj.read_json(N - 1)
+                for n in (N+1, N+2, N+3, N+5, N * 2):
+                    check_obj.read_json(n)
+                    check_obj.save_results(n)
+
     else:
         run_playbook("install_all", {})
-        run_deps()
+        for params in OPT:
+                check_obj = DegradationCheck(params)
+                N = bin_search(params)
+                print(N)
+                check_obj.read_json(N)
+                if N - 1 != 0:
+                    check_obj.read_json(N - 1)
+                for n in (N+1, N+2, N+3, N+5, N * 2):
+                    check_obj.read_json(n)
 
