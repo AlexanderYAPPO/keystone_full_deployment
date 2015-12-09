@@ -68,6 +68,7 @@ class DegradationCheck:
                     "start",
                     HOME_DIR + "/nfind.json"],
                    stdout=PIPE)
+        p2.wait() 
         txt = p2.communicate()[0].decode("utf-8")
         if not "task results" in txt:
             return (False, False)
@@ -79,6 +80,10 @@ class DegradationCheck:
 
     def save_results(self, rps):
         id = self.ID_DICT[rps]
+        if id == False:
+            with open(self.results_dir + '/%s_fail.txt' % rps, 'wb') as outfile:
+                outfile.write("fail")
+            return
         json_data = check_output("%s task results %s" % (RALLY_PATH, id), shell=True).decode("utf-8")
         with open(self.results_dir + '/%s_j.json' % rps, 'wb') as outfile:
             json.dump(json_data, outfile)
@@ -93,6 +98,7 @@ class DegradationCheck:
         if id == False:
             return True
         self.ID_DICT[rps] = id
+        #self.save_results(rps)
         tmp_X = []
         tmp_Y = []
         n_errors = 0

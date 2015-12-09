@@ -6,12 +6,12 @@ from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
 from find_n import DegradationCheck
-UPPER_BOUND = 20
+UPPER_BOUND = 200
 WEB_SERVERS = ["apache", "uwsgi"]
-DBMS = ["mysql", "postgresql"]  # database type
-FS = ("/dev/sdb",
+DBMS = ["postgresql", "mysql"]  # database type
+FS = ("/dev/sda7",
           "tmpfs",  # device name
-          "/dev/sdc"  # SSD
+          "/dev/sdb1"  # SSD
           )
 
 OPT = []  # a list of all options
@@ -58,7 +58,7 @@ def gen_opts():
                           }
                 OPT.append(PARAMS)
                 test_num += 1
-
+import time
 def bin_search(params):
     left = 1
     right = UPPER_BOUND
@@ -74,6 +74,7 @@ def bin_search(params):
         print ("===============")
         print(m)
         run_playbook("stop_all", params)
+        time.sleep(10)
         if right == left + 1:
             return left
 
@@ -86,23 +87,48 @@ if __name__ == "__main__":
             for params in OPT:
                 check_obj = DegradationCheck(params)
                 N = bin_search(params)
-                print(N)
-                check_obj.read_json(N)
+                print("N:", N)
+                run_playbook("stop_all", params)
+                run_playbook("run_dep", params)
+                if not N in check_obj.ID_DICT:
+                    check_obj.read_json(N)
+                check_obj.save_results(N)
+                run_playbook("stop_all", params)
                 if N - 1 != 0:
+                    run_playbook("stop_all", params)
+                    run_playbook("run_dep", params)
                     check_obj.read_json(N - 1)
-                for n in (N+1, N+2, N+3, N+5, N * 2):
+                    check_obj.save_results(N - 1)
+                    run_playbook("stop_all", params)
+                for n in (N+1, N+3, N+5, N * 2):
+                    run_playbook("stop_all", params)
+                    run_playbook("run_dep", params)
                     check_obj.read_json(n)
                     check_obj.save_results(n)
-
+                    run_playbook("stop_all", params)
     else:
         run_playbook("install_all", {})
         for params in OPT:
-                check_obj = DegradationCheck(params)
-                N = bin_search(params)
-                print(N)
+            check_obj = DegradationCheck(params)
+            N = bin_search(params)
+            print "N:",N
+            run_playbook("stop_all", params)
+            run_playbook("run_dep", params)
+            if not N in check_obj.ID_DICT:
                 check_obj.read_json(N)
-                if N - 1 != 0:
-                    check_obj.read_json(N - 1)
-                for n in (N+1, N+2, N+3, N+5, N * 2):
-                    check_obj.read_json(n)
+            check_obj.save_results(N)
+            run_playbook("stop_all", params)
+            if N - 1 != 0:
+                run_playbook("stop_all", params)
+                run_playbook("run_dep", params)
+                check_obj.read_json(N - 1)
+                check_obj.save_results(N - 1)
+                run_playbook("stop_all", params)
+            for n in (N+1, N+3, N+5, N * 2):
+                run_playbook("stop_all", params)
+                run_playbook("run_dep", params)
+                time.sleep(10)
+                check_obj.read_json(n)
+                check_obj.save_results(n)
+                run_playbook("stop_all", params)
 
