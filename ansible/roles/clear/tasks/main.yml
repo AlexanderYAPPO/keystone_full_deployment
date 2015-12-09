@@ -19,9 +19,6 @@
   sudo: yes
   ignore_errors: yes
 
-- shell: "killall mysqld"
-  ignore_errors: yes
-
 - name: Stop postgresql
   service: name=postgresql state=stopped
   sudo: yes

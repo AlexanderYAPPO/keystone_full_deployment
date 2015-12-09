@@ -36,7 +36,6 @@ class DegradationCheck:
         X = array(tmp_X)
         Y = array(tmp_Y)
         a = stats.linregress(X, Y)[0]  # getting slope
-        print (a, THRESHOLD)
         if a > THRESHOLD:
             return True
         return False

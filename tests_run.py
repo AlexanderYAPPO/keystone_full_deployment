@@ -9,8 +9,8 @@ from find_n import DegradationCheck
 UPPER_BOUND = 200
 WEB_SERVERS = ["apache", "uwsgi"]
 DBMS = ["postgresql", "mysql"]  # database type
-FS = ("/dev/sda7",
-          "tmpfs",  # device name
+FS = ("/dev/sda7",  # HDD
+          "tmpfs",  # overlay
           "/dev/sdb1"  # SSD
           )
 
@@ -58,7 +58,8 @@ def gen_opts():
                           }
                 OPT.append(PARAMS)
                 test_num += 1
-import time
+
+
 def bin_search(params):
     left = 1
     right = UPPER_BOUND
@@ -71,10 +72,7 @@ def bin_search(params):
             right = m
         else:
             left = m
-        print ("===============")
-        print(m)
         run_playbook("stop_all", params)
-        time.sleep(10)
         if right == left + 1:
             return left
 
@@ -111,7 +109,6 @@ if __name__ == "__main__":
         for params in OPT:
             check_obj = DegradationCheck(params)
             N = bin_search(params)
-            print "N:",N
             run_playbook("stop_all", params)
             run_playbook("run_dep", params)
             if not N in check_obj.ID_DICT:
@@ -127,7 +124,6 @@ if __name__ == "__main__":
             for n in (N+1, N+3, N+5, N * 2):
                 run_playbook("stop_all", params)
                 run_playbook("run_dep", params)
-                time.sleep(10)
                 check_obj.read_json(n)
                 check_obj.save_results(n)
                 run_playbook("stop_all", params)
