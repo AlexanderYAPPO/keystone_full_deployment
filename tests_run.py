@@ -106,6 +106,7 @@ if __name__ == "__main__":
                     run_playbook("stop_all", params)
     else:
         run_playbook("install_all", {})
+        """
         for params in OPT:
             check_obj = DegradationCheck(params)
             N = bin_search(params)
@@ -128,3 +129,4 @@ if __name__ == "__main__":
                 check_obj.save_results(n)
                 run_playbook("stop_all", params)
 
+         """
