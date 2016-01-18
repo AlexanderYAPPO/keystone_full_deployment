@@ -22,11 +22,12 @@ class GE:
         self.L = []
         if act == "install":
             LIST = [
+                t("install", "tests"),
                 t("install", "postgresql"),
                 t("install", "mysql"),
-                t("install", "apache2"),
-                t("install", "uwsgi"),
                 t("install", "keystone"),
+                t("install", "apache"),
+                t("install", "uwsgi"),
                 t("install", "rally")
                 ]
             task = {"list": LIST}
