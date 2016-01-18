@@ -1,6 +1,14 @@
-__author__ = 'student'
+#!/usr/bin/env python
+import os
+import getpass
+from sys import argv
+from ansible.playbook import PlayBook
+from ansible import callbacks
+from ansible import utils
+from find_n import DegradationCheck
 
-
+USERNAME = getpass.getuser()  # current user's username
+PASSWORD = getpass.getpass()  # sudo pasword
 
 WEB_SERVERS = ["apache", "uwsgi"]
 DBMS = ["postgresql", "mysql"]  # database type
@@ -75,9 +83,30 @@ class GE:
             raise StopIteration()
 
 
+
 def run_playbook(name, extra):
-    name = name
-    extra_vars = extra
+    utils.VERBOSITY = 0
+    playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
+    stats = callbacks.AggregateStats()
+    runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
+                                                  verbose=utils.VERBOSITY)
+    pb = PlayBook(
+        playbook='/home/%s/keystone_full_deployment/ansible/%s.yml'
+                 % (USERNAME, name),
+        host_list="/home/%s/keystone_full_deployment/ansible/hosts"% USERNAME,
+        remote_user=USERNAME,
+        callbacks=playbook_cb,
+        runner_callbacks=runner_cb,
+        stats=stats,
+        private_key_file='/home/%s/.ssh/id_rsa' % USERNAME,
+        become=True,
+        become_pass="%s\n" % PASSWORD,
+        become_method='sudo',
+        extra_vars=extra
+    )
+    results = pb.run()
+    playbook_cb.on_stats(pb.stats)
+    return results
 
 def read_json(rps): # zaglushka
     print("read")
@@ -99,7 +128,7 @@ class Runner:
             params = {"fs_type" : name }
             run_playbook(name, params)
 
-        if action == "run" or "stop" or "install":
+        if action == "run" or action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
 
         if action == "func":
@@ -139,7 +168,7 @@ def bin_search(task):
 
 
 def cmd_parse():
-    return 0
+    return 1
 
 if __name__ == "__main__":
     inst = cmd_parse()
@@ -148,7 +177,7 @@ if __name__ == "__main__":
         for task in install_gen:
             runner = Runner(task)
             runner.execute()
-
+    """
     run_gen = GE("run")
     for task in run_gen:
         runner = Runner(task)
@@ -160,3 +189,4 @@ if __name__ == "__main__":
             save_runner.arg = rps
             save_runner.execute()
 
+    """
