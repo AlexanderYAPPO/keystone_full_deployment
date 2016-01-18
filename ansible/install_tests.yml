@@ -1,0 +1,16 @@
+- hosts: all
+
+  pre_tasks:
+    - apt: update_cache=yes
+      sudo: yes
+    - apt: name=git state=present
+      sudo: yes
+    - name: Install scipy Packages
+      apt: name={{ item }} state=present
+      with_items: list_of_packages
+
+  vars:
+      list_of_packages:
+          - python-numpy
+          - python-scipy
+          - python-matplotlib

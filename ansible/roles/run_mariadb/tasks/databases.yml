@@ -1,0 +1,13 @@
+---
+
+#- name: create MariaDB databases
+#  mysql_db:
+#    name: "{{ item.name }}"
+#    collation: "{{ item.collation | default('utf8_general_ci') }}"
+#    encoding: "{{ item.encoding | default('utf8') }}"
+#    state: present
+#  with_items: mariadb_databases
+#  when: mariadb_databases|length > 0
+
+- name: Create Database Keystone
+  mysql_db: name=keystone login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}

@@ -1,0 +1,12 @@
+---
+
+- hosts: all
+  roles:
+    - role: install_mariadb
+      mariadb_root_username: "{{ global_mariadb_user }}"
+      mariadb_root_password: "{{ global_mariadb_password }}"
+      mariad_default_config:
+        - name: 'mysqld'
+          config:
+            - innodb_lof_file_size = 48M
+      sudo: yes

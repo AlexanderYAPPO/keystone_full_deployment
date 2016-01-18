@@ -1,0 +1,17 @@
+- name: Create WSGI directory
+  file: path={{ keystone_cgi_dir }} owner={{ global_os_user }} mode=0755 state=directory
+  sudo: yes
+
+- name: WSGI component to main
+  template: src=roles/openstack-keystone/templates/application.py.j2 dest={{ keystone_cgi_dir }}/main owner={{ global_os_user }}
+  sudo: yes
+
+- name: WSGI component to admin
+  template: src=roles/openstack-keystone/templates/application.py.j2 dest={{ keystone_cgi_dir }}/admin owner={{ global_os_user }}
+  sudo: yes
+
+- name: WSGI component to admin for profiling
+  template: src=roles/openstack-keystone/templates/application_profile.py.j2 dest={{ keystone_cgi_dir }}/admin_profile owner={{ global_os_user }}
+  sudo: yes
+
+

@@ -1,0 +1,17 @@
+# file: postgresql/tasks/users.yml
+
+- name: PostgreSQL | Ensure PostgreSQL is running
+  service:
+    name: postgresql
+    state: started
+
+- name: PostgreSQL | Create users
+  postgresql_user:
+    name: keystone
+    password: "{{ global_keystone_password }}"
+    port: "{{postgresql_port}}"
+    state: present
+    login_user: "{{postgresql_admin_user}}"
+    login_password: "{{ global_postgresql_password }}"
+  sudo: yes
+  sudo_user: "{{postgresql_admin_user}}"

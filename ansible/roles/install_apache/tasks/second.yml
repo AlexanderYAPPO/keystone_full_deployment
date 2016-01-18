@@ -1,0 +1,14 @@
+
+- include: run_uwsgi.yml
+  when: global_run_type == "uwsgi"
+
+- include: run_apache.yml
+  when: global_run_type == "apache"
+
+
+- pause: seconds=2
+
+- include: endpoints.yml
+- include: tenants.yml
+- include: users.yml
+- include: roles.yml

@@ -1,0 +1,6 @@
+- include: wsgi_configuration.yml
+
+- include: run_keystone.yml
+
+- name: create profiling application
+  template: src=roles/openstack-keystone/templates/keystone_profile_run.py.j2 dest=/tmp/keystone_profile_run.py

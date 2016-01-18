@@ -1,0 +1,10 @@
+- include: wsgi_configuration.yml
+
+- name: install uWSGI
+  pip:
+    name: uwsgi
+    virtualenv: "{{ keystone_dir }}/venv"
+
+- name: isntall nginx
+  apt: name=nginx
+  sudo: yes
