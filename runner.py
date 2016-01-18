@@ -16,27 +16,62 @@ class t:
         self.name = name
 
 
-def G():
-    for db in DBMS:
-        for srv in WEB_SERVERS:
-            for fs in FS:
-                LIST =  [
-                        t("mount", fs),
-                        t("run", db),
-                        t("run", srv),
-                        t("run", "keystone"),
-                        t("func", "tests"),
-                        t("stop", "keystone"),
-                        t("stop", srv),
-                        t("stop", db),
-                        t("umount", fs)
-                        ]
-                task = {"list": LIST,
-                        "param1": 0,
-                        "param2": 20
-                }
-                yield task
+class GE:
+    def __init__(self, act):
+        self.i = 0
+        self.L = []
+        if act == "install":
+            LIST = [
+                t("install", "postgresql"),
+                t("install", "mysql"),
+                t("install", "apache2"),
+                t("install", "uwsgi"),
+                t("install", "keystone"),
+                t("install", "rally")
+                ]
+            task = {"list": LIST}
+            self.L.append(task)
 
+        if act == "run":
+            for db in DBMS:
+                for srv in WEB_SERVERS:
+                    for fs in FS:
+                        LIST =  [
+                                t("mount", fs),
+                                t("run", db),
+                                t("run", srv),
+                                t("run", "keystone"),
+                                t("func", "tests"),
+                                t("stop", "keystone"),
+                                t("stop", srv),
+                                t("stop", db),
+                                t("umount", fs)
+                                ]
+                        task = {"list": LIST,
+                                "param1": 0,
+                                "param2": 20
+                        }
+                        self.L.append(task)
+        self.n = len(self.L)
+
+    def get_savetask(self):
+        cur = self.i - 1
+        for index, item in enumerate(self.L[cur]["list"]):
+            if item.name == "tests":
+                item.name = "save"
+                self.L[cur]["list"][index] = item
+        return self.L[cur]
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self.i < self.n:
+            i = self.i
+            self.i += 1
+            return self.L[i]
+        else:
+            raise StopIteration()
 
 
 def run_playbook(name, extra):
@@ -44,9 +79,11 @@ def run_playbook(name, extra):
     extra_vars = extra
 
 def read_json(rps): # zaglushka
+    print("read")
     return True # True/False
+
 def save(rps):
-    print "saved"
+    print "saved", rps
 
 class Runner:
     def __init__(self, task):
@@ -56,12 +93,14 @@ class Runner:
     def parse(self, task):
         action = task.action
         name = task.name
+        params = {}
         if action == "mount":
             params = {"fs_type" : name }
             run_playbook(name, params)
-        if action == "run" or "stop":
-            params = {}
+
+        if action == "run" or "stop" or "install":
             run_playbook("%s_%s" % (action, name), params)
+
         if action == "func":
             if name == "tests":
                 rps = self.arg
@@ -99,18 +138,24 @@ def bin_search(task):
 
 
 def cmd_parse():
-    pass
+    return 0
 
 if __name__ == "__main__":
-    cmd_parse()
-    gen = G()
-    for task in gen:
+    inst = cmd_parse()
+    if inst:
+        install_gen = GE("install")
+        for task in install_gen:
+            runner = Runner(task)
+            runner.execute()
+
+    run_gen = GE("run")
+    for task in run_gen:
         runner = Runner(task)
         N = bin_search(task)
-        # runner.LIST[4] = t("func", "save")
-        # runner.execute()
         print "N = %s" % N
-
-
-
+        save_task = run_gen.get_savetask()
+        for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
+            save_runner = Runner(save_task)
+            save_runner.arg = rps
+            save_runner.execute()
 
