@@ -202,4 +202,4 @@ if __name__ == "__main__":
             save_runner = Runner(save_task)
             save_runner.rps = rps
             save_runner.execute()
-        Runner({"list": [t("install", "rally")]})
+        Runner({"list": [t("install", "rally")]}).execute()
