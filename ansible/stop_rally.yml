@@ -1,0 +1,15 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+  - name: rally deployment recreate
+    shell: "/home/{{ global_os_user }}/rally/bin/rally-manage db recreate"
+  - name: prepare rally
+    shell: "/home/{{ global_os_user }}/rally/bin/rally deployment create --fromenv --name=existing"
+    environment:
+       OS_USERNAME: "{{ global_keystone_user }}"
+       OS_PASSWORD: "{{ global_keystone_password }}"
+       OS_AUTH_URL: "{{ global_keystone_auth }}"
+       OS_ENDPOINT: "{{ global_keystone_auth }}"
+       OS_TENANT_NAME: "{{ global_keystone_tenant }}"
