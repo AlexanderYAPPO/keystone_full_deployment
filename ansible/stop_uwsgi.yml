@@ -1,0 +1,13 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - name: Stop nginx
+      service: name=nginx state=stopped
+
+    - name: Stop uwsgi
+      shell: "kill -HUP `pidof uwsgi` &> /dev/null"
+      sudo: yes
+      ignore_errors: yes
+

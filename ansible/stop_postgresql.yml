@@ -1,0 +1,12 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - name: PostgreSQL | delete cluster
+      shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}
+      sudo: yes
+      ignore_errors: yes
+    - name: Stop postgresql
+      service: name=postgresql state=stopped
+      sudo: yes
