@@ -3,5 +3,5 @@
 - hosts: all
 
   pre_tasks:
-    - mount: name="/var/lib/postgresql" src={{global_fs_src}} fstype={{global_fs_type}} state=unmounted
+    - mount: name="/var/lib/postgresql" src={{fs_src}} fstype={{fs_type}} state=unmounted
       sudo: yes

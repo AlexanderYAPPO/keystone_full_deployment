@@ -3,7 +3,7 @@
 - hosts: all
 
   pre_tasks:
-    - mount: name="/var/lib/postgresql/" src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
+    - mount: name="/var/lib/postgresql/" src={{fs_src}} fstype={{fs_type}} state=mounted
       sudo: yes
 
     - shell: "rm -rf /var/lib/postgresql/*"
