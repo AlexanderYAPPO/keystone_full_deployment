@@ -124,15 +124,7 @@ class Runner:
     def __init__(self, task):
         self.LIST = task["list"]
         self.rps = None
-        for t in self.LIST:
-            name = t.name
-            if name in DBMS:
-                self.db = name
-            if name in FS:
-                self.fs = name
-            if name in WEB_SERVERS:
-                self.srv = name
-
+ 
     def parse(self, task):
         action = task.action
         name = task.name
@@ -190,7 +182,7 @@ def bin_search(task):
 
 
 def cmd_parse():
-    return 0
+    return 1
 
 if __name__ == "__main__":
     inst = cmd_parse()
@@ -210,3 +202,4 @@ if __name__ == "__main__":
             save_runner = Runner(save_task)
             save_runner.rps = rps
             save_runner.execute()
+        Runner({"list": [t("install", "rally")]})
