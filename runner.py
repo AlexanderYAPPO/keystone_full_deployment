@@ -5,7 +5,7 @@ from sys import argv
 from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
-from find_n import DegradationCheck
+from degr import DegradationCheck
 
 USERNAME = getpass.getuser()  # current user's username
 PASSWORD = getpass.getpass()  # sudo pasword
@@ -108,36 +108,55 @@ def run_playbook(name, extra):
     playbook_cb.on_stats(pb.stats)
     return results
 
-def read_json(rps): # zaglushka
-    print("read")
-    return True # True/False
+def read_json(rps, db, fs, srv): # zaglushka
+    d = DegradationCheck(fs, db, srv)
+    isdeg = d.read_json(rps)
+    return isdeg
 
-def save(rps):
-    print "saved", rps
+def save(rps, db, fs, srv):
+    d = DegradationCheck(fs, db,srv)
+    d.read_json(rps)
+    d.save_results(rps)
+    print "saved", rps, db, fs, srv
 
 class Runner:
     def __init__(self, task):
         self.LIST = task["list"]
-        self.arg = None
+        self.rps = None
+        self.db = None
+        self.fs = None
+        self.srv = None
+        for t in self.LIST:
+            name = t.name
+            if name in DBMS:
+                self.db = name
+            if name in FS:
+                self.fs = name
+            if name in WEB_SERVERS:
+                self.srv = name
+
 
     def parse(self, task):
         action = task.action
         name = task.name
         params = {}
         if action == "mount":
-            params = {"fs_type" : name }
-            run_playbook(name, params)
-
+            params = {"fs_type" : name}
+            if self.db == "postgresql":
+                run_playook("mount_postgresql", params)
+            if self.db == "mysql":
+                run_playbook("mount_mysql", params) 
+        
         if action == "run" or action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
-
+        
         if action == "func":
             if name == "tests":
-                rps = self.arg
-                return read_json(rps)
+                rps = self.rps
+                return read_json(rps, self.db, self.fs, self.srv)
             if name == "save":
-                rps = self.arg
-                return save(rps)
+                rps = self.rps                
+                return save(rps, self.db, self.fs, self.srv)
 
 
     def execute(self):
@@ -186,7 +205,7 @@ if __name__ == "__main__":
         save_task = run_gen.get_savetask()
         for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
             save_runner = Runner(save_task)
-            save_runner.arg = rps
+            save_runner.rps = rps
             save_runner.execute()
 
     """
