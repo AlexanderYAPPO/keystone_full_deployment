@@ -11,8 +11,11 @@
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
-- include: run_apache.yml
+
+- include: run_uwsgi.yml
+
 - pause: seconds=2
+
 - include: endpoints.yml
 - include: tenants.yml
 - include: users.yml

@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - name: stop mariadb
+      service: name=mysql state=stopped
+      sudo: yes
+      ignore_errors: yes

@@ -4,12 +4,6 @@
     name: mysql
     state: stopped
 
-- mount: name={{mariadb_datadir}} src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
-
-- shell: "rm -rf {{mariadb_datadir}}/*"
-  sudo: yes
-
-- command: chown mysql:mysql {{mariadb_datadir}} -R
 
 # be sure all folders exists before resting permissions
 - name: ensure /run/mysqld folder exists

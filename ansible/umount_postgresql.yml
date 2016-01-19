@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - mount: name="/var/lib/postgresql" src={{global_fs_src}} fstype={{global_fs_type}} state=unmounted
+      sudo: yes
