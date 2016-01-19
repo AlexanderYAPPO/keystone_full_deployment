@@ -51,10 +51,9 @@ class GE:
                                 t("run", srv),
                                 t("run", "keystone"),
                                 t("func", "tests"),
-                                t("stop", "keystone"),
                                 t("stop", srv),
                                 t("stop", db),
-                                t("umount", fs)
+                                t("umount", db)
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
@@ -196,7 +195,7 @@ if __name__ == "__main__":
         for task in install_gen:
             runner = Runner(task)
             runner.execute()
-    """
+    
     run_gen = GE("run")
     for task in run_gen:
         runner = Runner(task)
@@ -208,4 +207,4 @@ if __name__ == "__main__":
             save_runner.rps = rps
             save_runner.execute()
 
-    """
+    
