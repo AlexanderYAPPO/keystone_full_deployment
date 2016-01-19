@@ -54,7 +54,8 @@ class GE:
                                 t("func", "tests"),
                                 t("stop", srv),
                                 t("stop", db),
-                                t("umount", db)
+                                t("umount", db),
+                                t("stop", "rally")
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
