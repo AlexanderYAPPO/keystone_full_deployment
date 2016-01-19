@@ -19,9 +19,10 @@ FS = ("/dev/sda7",  # HDD
 
 
 class t:
-    def __init__(self, action, name):
+    def __init__(self, action, name, extra):
         self.action = action
         self.name = name
+        self.extra = extra
 
 
 class GE:
@@ -30,13 +31,13 @@ class GE:
         self.L = []
         if act == "install":
             LIST = [
-                t("install", "tests"),
-                t("install", "postgresql"),
-                t("install", "mysql"),
-                t("install", "keystone"),
-                t("install", "apache"),
-                t("install", "uwsgi"),
-                t("install", "rally")
+                t("install", "tests", {}),
+                t("install", "postgresql", {}),
+                t("install", "mysql", {}),
+                t("install", "keystone", {}),
+                t("install", "apache", {}),
+                t("install", "uwsgi", {}),
+                t("install", "rally", {})
                 ]
             task = {"list": LIST}
             self.L.append(task)
@@ -46,16 +47,15 @@ class GE:
                 for srv in WEB_SERVERS:
                     for fs in FS:
                         LIST =  [
-                                t("stop", db),
-                                t("stop", srv),
-                                t("mount", fs),
-                                t("run", db),
-                                t("run", srv),
-                                t("func", "tests"),
-                                t("stop", srv),
-                                t("stop", db),
-                                t("umount", db),
-                                t("stop", "rally")
+                                t("stop", db, {}),
+                                t("stop", srv, {}),
+                                t("mount", fs, {"db": db}),
+                                t("run", db, {}),
+                                t("run", srv, {"db": db}),
+                                t("func", "tests", {"db": db, "fs": fs, "srv": srv}),
+                                t("stop", srv, {}),
+                                t("stop", db, {}),
+                                t("umount", db, {})
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
@@ -109,7 +109,7 @@ def run_playbook(name, extra):
     playbook_cb.on_stats(pb.stats)
     return results
 
-def read_json(rps, db, fs, srv): # zaglushka
+def read_json(rps, db, fs, srv):
     d = DegradationCheck(fs.replace("/", ""), db, srv)
     isdeg = d.read_json(rps)
     return isdeg
@@ -124,9 +124,6 @@ class Runner:
     def __init__(self, task):
         self.LIST = task["list"]
         self.rps = None
-        self.db = None
-        self.fs = None
-        self.srv = None
         for t in self.LIST:
             name = t.name
             if name in DBMS:
@@ -136,30 +133,33 @@ class Runner:
             if name in WEB_SERVERS:
                 self.srv = name
 
-
     def parse(self, task):
         action = task.action
         name = task.name
+        extra = task.extra
         params = {}
         if action == "mount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {"fs_src" : name, "fs_type": fs_type}
-            if self.db == "postgresql":
+            db = extra["db"]
+            if db == "postgresql":
                 run_playbook("mount_postgresql", params)
-            if self.db == "mysql":
-                run_playbook("mount_mysql", params) 
-        
-        if action == "run" or action == "stop" or action == "install":
-            params = {"global_db" : self.db}
+            if db == "mysql":
+                run_playbook("mount_mysql", params)
+        if action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
-        
+        if action == "run":
+            if name in WEB_SERVERS:
+                params = {"global_db" : extra["db"]}
+            run_playbook("%s_%s" % (action, name), params)
+
         if action == "func":
             if name == "tests":
                 rps = self.rps
-                return read_json(rps, self.db, self.fs, self.srv)
+                return read_json(rps, extra["db"], extra["fs"], extra["srv"])
             if name == "save":
-                rps = self.rps                
-                return save(rps, self.db, self.fs, self.srv)
+                rps = self.rps
+                return save(rps, extra["db"], extra["fs"], extra["srv"])
 
 
     def execute(self):
@@ -199,7 +199,7 @@ if __name__ == "__main__":
         for task in install_gen:
             runner = Runner(task)
             runner.execute()
-    
+
     run_gen = GE("run")
     for task in run_gen:
         runner = Runner(task)
@@ -210,6 +210,3 @@ if __name__ == "__main__":
             save_runner = Runner(save_task)
             save_runner.rps = rps
             save_runner.execute()
-
-    
-
