@@ -1,10 +1,6 @@
 # file: postgresql/tasks/configure.yml
-- mount: name="/var/lib/postgresql/" src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
-  sudo: yes
 
-- shell: "rm -rf /var/lib/postgresql/*"
-  sudo: yes
-  ignore_errors: yes
+
 
 - name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
   shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}

@@ -3,8 +3,6 @@
 - hosts: all
 
   pre_tasks:
-    - apt: update_cache=yes
-      sudo: yes
     - mount: name={{mariadb_datadir}} src={{global_fs_src}} fstype={{global_fs_type}} state=mounted
 
     - shell: "rm -rf {{mariadb_datadir}}/*"
