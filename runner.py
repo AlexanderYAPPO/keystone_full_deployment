@@ -55,11 +55,12 @@ class GE:
                                 t("func", "tests", {"db": db, "fs": fs, "srv": srv}),
                                 t("stop", srv, {}),
                                 t("stop", db, {}),
-                                t("umount", db, {})
+                                t("umount", db, {}),
+                                t("stop", "rally", {})
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
-                                "param2": 20
+                                "param2": 200
                         }
                         self.L.append(task)
         self.n = len(self.L)
@@ -202,4 +203,4 @@ if __name__ == "__main__":
             save_runner = Runner(save_task)
             save_runner.rps = rps
             save_runner.execute()
-        Runner({"list": [t("install", "rally")]}).execute()
+        #Runner({"list": [t("install", "rally")]}).execute()
