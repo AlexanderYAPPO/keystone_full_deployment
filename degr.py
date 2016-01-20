@@ -6,7 +6,7 @@ import getpass
 matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
-from pylab import plot,xlim,ylim,savefig
+#from pylab import plot,xlim,ylim,savefig
 from subprocess import Popen, PIPE, check_output
 
 THRESHOLD = 0.001
@@ -95,23 +95,23 @@ class DegradationCheck:
         report_args = (RALLY_PATH, id, self.results_dir + '/%s_h.html' % rps)
         check_output("%s task report %s --out %s" % report_args, shell=True)
         #pylab
-        full_json = json.loads(json_data)[0]
-        tmp_X = []
-        tmp_Y = []
-        t1 = full_json["result"][0]["timestamp"]
-        for result in full_json["result"]:
-            t2 = result["timestamp"] - t1
-            if t2 > 60:
-                tmp_X.append(result["timestamp"])
-                tmp_Y.append(float(result["duration"]))
-        X = array(tmp_X)
-        Y = array(tmp_Y)
-        slope, intercept, r_value, p_value, std_err = stats.linregress(X, Y)
-        line = slope * X + intercept
-        xlim(X[0], X[-1])
+        #full_json = json.loads(json_data)[0]
+        #tmp_X = []
+        #tmp_Y = []
+        #t1 = full_json["result"][0]["timestamp"]
+        #for result in full_json["result"]:
+        #    t2 = result["timestamp"] - t1
+        #    if t2 > 60:
+        #        tmp_X.append(result["timestamp"])
+        #        tmp_Y.append(float(result["duration"]))
+        #X = array(tmp_X)
+        #Y = array(tmp_Y)
+        #slope, intercept, r_value, p_value, std_err = stats.linregress(X, Y)
+        #line = slope * X + intercept
+        #xlim(X[0], X[-1])
         #ylim(Y[0], Y[-1])
-        plot(X,line,"r-", X, Y, 'o')
-        savefig(self.results_dir + "/%s.png" % rps)
+        #plot(X,line,"r-", X, Y, 'o')
+        #savefig(self.results_dir + "/%s.png" % rps)
 
     def read_json(self, rps):
         print "rps: ", rps

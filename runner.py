@@ -52,10 +52,10 @@ class GE:
                                 t("mount", fs, {"db": db}),
                                 t("run", db, {}),
                                 t("run", srv, {"db": db}),
-                                t("func", "tests", {"db": db, "fs": fs, "srv": srv}),
+                                #t("func", "tests", {"db": db, "fs": fs, "srv": srv}),
                                 t("stop", srv, {}),
                                 t("stop", db, {}),
-                                t("umount", db, {}),
+                                t("umount", db, {"db": db}),
                                 t("stop", "rally", {})
                                 ]
                         task = {"list": LIST,
@@ -131,14 +131,14 @@ class Runner:
         name = task.name
         extra = task.extra
         params = {}
-        if action == "mount":
+        if action == "mount" or action == "umount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {"fs_src" : name, "fs_type": fs_type}
             db = extra["db"]
             if db == "postgresql":
-                run_playbook("mount_postgresql", params)
+                run_playbook("%s_postgresql" % action, params)
             if db == "mysql":
-                run_playbook("mount_mysql", params)
+                run_playbook("%s_mysql" % action, params)
         if action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
         if action == "run":

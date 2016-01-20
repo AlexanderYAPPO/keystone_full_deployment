@@ -3,7 +3,8 @@
 - hosts: all
 
   pre_tasks:
-    - mount: name={{mariadb_datadir}} src={{fs_src}} fstype={{fs_type}} state=unmounted
+    - name: UMOUNT MYSQL
+      mount: name={{mariadb_datadir}} src={{fs_src}} fstype={{fs_type}} state=unmounted
       sudo: yes
   vars:
       mariadb_datadir: /var/lib/mysql
