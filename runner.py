@@ -17,6 +17,12 @@ FS = ("/dev/sda7",  # HDD
           "/dev/sdb1"  # SSD
           )
 
+class extra():
+    def __init__(self, db = None, fs = None, srv = None):
+        self.db = db
+        self.srv = srv
+        self.fs = fs
+
 
 class t:
     def __init__(self, action, name, extra):
@@ -31,13 +37,13 @@ class GE:
         self.L = []
         if act == "install":
             LIST = [
-                t("install", "tests", {}),
-                t("install", "postgresql", {}),
-                t("install", "mysql", {}),
-                t("install", "keystone", {}),
-                t("install", "apache", {}),
-                t("install", "uwsgi", {}),
-                t("install", "rally", {})
+                t("install", "tests", extra()),
+                t("install", "postgresql", extra()),
+                t("install", "mysql", extra()),
+                t("install", "keystone", extra()),
+                t("install", "apache", extra()),
+                t("install", "uwsgi", extra()),
+                t("install", "rally", extra())
                 ]
             task = {"list": LIST}
             self.L.append(task)
@@ -47,6 +53,7 @@ class GE:
                 for srv in WEB_SERVERS:
                     for fs in FS:
                         LIST =  [
+<<<<<<< HEAD
                                 t("stop", db, {}),
                                 t("stop", srv, {}),
                                 t("mount", fs, {"db": db}),
@@ -57,6 +64,18 @@ class GE:
                                 t("stop", db, {}),
                                 t("umount", db, {"db": db}),
                                 t("stop", "rally", {})
+=======
+                                t("stop", db, extra()),
+                                t("stop", srv, extra()),
+                                t("mount", fs, extra(db)),
+                                t("run", db, extra(db)),
+                                t("run", srv, extra(db)),
+                                t("func", "tests",extra(fs,db,srv)),
+                                t("stop", srv, extra()),
+                                t("stop", db, extra()),
+                                t("umount", db, extra()),
+                                t("stop", "rally", extra())
+>>>>>>> 15a4e600e55ee34b01bba9dd5a03811a9bb0acf5
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
@@ -129,12 +148,11 @@ class Runner:
     def parse(self, task):
         action = task.action
         name = task.name
-        extra = task.extra
         params = {}
         if action == "mount" or action == "umount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {"fs_src" : name, "fs_type": fs_type}
-            db = extra["db"]
+            db = task.extra.db
             if db == "postgresql":
                 run_playbook("%s_postgresql" % action, params)
             if db == "mysql":
@@ -143,16 +161,16 @@ class Runner:
             run_playbook("%s_%s" % (action, name), params)
         if action == "run":
             if name in WEB_SERVERS:
-                params = {"global_db" : extra["db"]}
+                params = {"global_db" : task.extra.db}
             run_playbook("%s_%s" % (action, name), params)
 
         if action == "func":
             if name == "tests":
                 rps = self.rps
-                return read_json(rps, extra["db"], extra["fs"], extra["srv"])
+                return read_json(rps, task.extra.db, task.extra.fs, task.extra.srv)
             if name == "save":
                 rps = self.rps
-                return save(rps, extra["db"], extra["fs"], extra["srv"])
+                return save(rps, task.extra.db, task.extra.fs, task.extra.srv)
 
 
     def execute(self):
