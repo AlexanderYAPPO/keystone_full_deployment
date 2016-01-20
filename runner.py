@@ -53,18 +53,6 @@ class GE:
                 for srv in WEB_SERVERS:
                     for fs in FS:
                         LIST =  [
-<<<<<<< HEAD
-                                t("stop", db, {}),
-                                t("stop", srv, {}),
-                                t("mount", fs, {"db": db}),
-                                t("run", db, {}),
-                                t("run", srv, {"db": db}),
-                                #t("func", "tests", {"db": db, "fs": fs, "srv": srv}),
-                                t("stop", srv, {}),
-                                t("stop", db, {}),
-                                t("umount", db, {"db": db}),
-                                t("stop", "rally", {})
-=======
                                 t("stop", db, extra()),
                                 t("stop", srv, extra()),
                                 t("mount", fs, extra(db)),
@@ -75,7 +63,6 @@ class GE:
                                 t("stop", db, extra()),
                                 t("umount", db, extra()),
                                 t("stop", "rally", extra())
->>>>>>> 15a4e600e55ee34b01bba9dd5a03811a9bb0acf5
                                 ]
                         task = {"list": LIST,
                                 "param1": 0,
@@ -149,14 +136,14 @@ class Runner:
         action = task.action
         name = task.name
         params = {}
-        if action == "mount" or action == "umount":
+        if action == "mount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {"fs_src" : name, "fs_type": fs_type}
             db = task.extra.db
             if db == "postgresql":
-                run_playbook("%s_postgresql" % action, params)
+                run_playbook("mount_postgresql", params)
             if db == "mysql":
-                run_playbook("%s_mysql" % action, params)
+                run_playbook("mount_mysql", params)
         if action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
         if action == "run":
