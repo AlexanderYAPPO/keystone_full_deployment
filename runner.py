@@ -16,12 +16,14 @@ FS = ("/dev/sda7",  # HDD
           "tmpfs",  # overlay
           "/dev/sdb1"  # SSD
           )
-
-class extra():
-    def __init__(self, db = None, fs = None, srv = None):
+# 1
+class extra(): 
+    def __init__(self, db = None, fs = None, srv = None, param1 = 0, param2 = 0):
         self.db = db
         self.srv = srv
         self.fs = fs
+        self.param1 = param1
+        self.param2 = param2
 
 
 class t:
@@ -45,8 +47,7 @@ class GE:
                 t("install", "uwsgi", extra()),
                 t("install", "rally", extra())
                 ]
-            task = {"list": LIST}
-            self.L.append(task)
+            self.L.append(LIST)
 
         if act == "run":
             for db in DBMS:
@@ -58,26 +59,34 @@ class GE:
                                 t("mount", fs, extra(db)),
                                 t("run", db, extra(db)),
                                 t("run", srv, extra(db)),
-                                t("func", "tests",extra(fs,db,srv)),
+                                t("func", "tests",extra(fs,db,srv, 0, 200)),
                                 t("stop", srv, extra()),
                                 t("stop", db, extra()),
                                 t("umount", db, extra()),
                                 t("stop", "rally", extra())
                                 ]
-                        task = {"list": LIST,
-                                "param1": 0,
-                                "param2": 200
-                        }
-                        self.L.append(task)
+                        self.L.append(LIST)
         self.n = len(self.L)
 
     def get_savetask(self):
-        cur = self.i - 1
-        for index, item in enumerate(self.L[cur]["list"]):
-            if item.name == "tests":
-                item.name = "save"
-                self.L[cur]["list"][index] = item
-        return self.L[cur]
+        L = []
+        for db in DBMS:
+            for srv in WEB_SERVERS:
+                for fs in FS:
+                    LIST =  [
+                            t("stop", db, extra()),
+                            t("stop", srv, extra()),
+                            t("mount", fs, extra(db)),
+                            t("run", db, extra(db)),
+                            t("run", srv, extra(db)),
+                            t("func", "save",extra(fs,db,srv, 0, 200)),
+                            t("stop", srv, extra()),
+                            t("stop", db, extra()),
+                            t("umount", db, extra()),
+                            t("stop", "rally", extra())
+                            ]
+        self.n = len(L)
+        return L
 
     def __iter__(self):
         return self
@@ -116,23 +125,15 @@ def run_playbook(name, extra):
     playbook_cb.on_stats(pb.stats)
     return results
 
-def read_json(rps, db, fs, srv):
-    d = DegradationCheck(fs.replace("/", ""), db, srv)
-    isdeg = d.read_json(rps)
-    return isdeg
 
-def save(rps, db, fs, srv):
-    d = DegradationCheck(fs.replace("/", ""), db,srv)
-    d.read_json(rps)
-    d.save_results(rps)
-    print "saved", rps, db, fs, srv
 
 class Runner:
     def __init__(self, task):
-        self.LIST = task["list"]
+        self.task = task
         self.rps = None
  
-    def parse(self, task):
+    def run(self):
+        task = self.task
         action = task.action
         name = task.name
         params = {}
@@ -154,38 +155,36 @@ class Runner:
         if action == "func":
             if name == "tests":
                 rps = self.rps
-                return read_json(rps, task.extra.db, task.extra.fs, task.extra.srv)
+                d = DegradationCheck(task.extra.fs.replace("/", ""), task.extra.db, task.extra.srv)
+                isdeg = d.read_json(self.rps)
+                return isdeg
             if name == "save":
                 rps = self.rps
-                return save(rps, task.extra.db, task.extra.fs, task.extra.srv)
+                d = DegradationCheck(task.extra.fs.replace("/", ""), task.extra.db, task.extra.srv)
+                d.read_json(self.rps)
+                d.save_results(self.rps)
 
 
-    def execute(self):
-        result = None
-        for task in self.LIST:
-            res = self.parse(task)
-            if res != None:
-                result = res
-        print "executed:"
-        print [(x.action, x.name) for x in self.LIST]
-        return result
-
-
-
-def bin_search(task):
-    left = task["param1"]
-    right = task["param2"]
+def bin_search(L, param1, param2):
+    left = param1
+    right = param2
     while True:
         m = int((left + right) / 2)
-        runner.rps = m
-        result = runner.execute()
-        if result:
+        degr = None
+        for obj in L:
+            runner = Runner(obj)
+            if obj.name == "tests":
+                runner.rps = m
+                degr = runner.run()
+            else:
+                runner.run()
+
+        if degr:
             right = m
         else:
             left = m
         if right == left + 1:
             return left
-
 
 def cmd_parse():
     return 1
@@ -194,18 +193,26 @@ if __name__ == "__main__":
     inst = cmd_parse()
     if inst:
         install_gen = GE("install")
-        for task in install_gen:
-            runner = Runner(task)
-            runner.execute()
-
+        for L in install_gen:
+            for obj in L:
+                runner = Runner(obj)
+                runner.run()
     run_gen = GE("run")
-    for task in run_gen:
-        runner = Runner(task)
-        N = bin_search(task)
-        print "N = %s" % N
-        save_task = run_gen.get_savetask()
-        for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
-            save_runner = Runner(save_task)
-            save_runner.rps = rps
-            save_runner.execute()
-        #Runner({"list": [t("install", "rally")]}).execute()
+    for L in run_gen:
+        for obj in L:
+            runner = Runner(obj)
+            if obj.name == "tests": 
+                N = bin_search(L, obj.extra.param1, obj.extra.param2) # 2
+                print "N = %s" % N
+                save_task = run_gen.get_savetask()
+                for save_obj in save_task:
+                    save_runner = Runner(save_obj)
+                    if save_obj.name == "save":
+                        for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
+                            save_runner.rps = rps
+                            save_runner.run()
+                    else:
+                        save_runner.run()
+            else:
+                runner.run()
+
