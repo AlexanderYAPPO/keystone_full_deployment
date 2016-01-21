@@ -39,13 +39,14 @@ class GE:
         self.L = []
         if act == "install":
             LIST = [
-                t("install", "tests", extra()),
-                t("install", "postgresql", extra()),
-                t("install", "mysql", extra()),
-                t("install", "keystone", extra()),
-                t("install", "apache", extra()),
-                t("install", "uwsgi", extra()),
-                t("install", "rally", extra())
+                #t("install", "tests", extra()),
+                #t("install", "postgresql", extra()),
+                #t("install", "mysql", extra()),
+                #t("install", "keystone", extra()),
+                #t("install", "apache", extra()),
+                #t("install", "uwsgi", extra()),
+                #("install", "rally", extra())
+                t("install", "mock", extra())
                 ]
             self.L.append(LIST)
 
@@ -54,16 +55,18 @@ class GE:
                 for srv in WEB_SERVERS:
                     for fs in FS:
                         LIST =  [
-                                t("stop", db, extra()),
-                                t("stop", srv, extra()),
-                                t("mount", fs, extra(db)),
-                                t("run", db, extra(db)),
-                                t("run", srv, extra(db)),
-                                t("func", "tests",extra(fs,db,srv, 0, 200)),
-                                t("stop", srv, extra()),
-                                t("stop", db, extra()),
-                                t("umount", db, extra()),
-                                t("stop", "rally", extra())
+                            t("run", "mock", extra()),
+                            t("stop", "mock", extra())
+                            #t("stop", db, extra()),
+                            #t("stop", srv, extra()),
+                            #t("mount", fs, extra(db)),
+                            #t("run", db, extra(db)),
+                            #t("run", srv, extra(db)),
+                            #t("func", "tests",extra(fs,db,srv, 0, 200)),
+                            #t("stop", srv, extra()),
+                            #t("stop", db, extra()),
+                            #t("umount", db, extra()),
+                            #t("stop", "rally", extra())
                                 ]
                         self.L.append(LIST)
         self.n = len(self.L)

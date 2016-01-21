@@ -2,7 +2,7 @@
 
 - hosts: all
 
-  pre_tasks:
+  tasks:
     - name: UMOUNT MYSQL
       mount: name={{mariadb_datadir}} src={{fs_src}} fstype={{fs_type}} state=unmounted
       sudo: yes
