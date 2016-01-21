@@ -1,0 +1,9 @@
+---
+
+- hosts: all
+
+  tasks:
+      - name: stop mock
+        service:
+          name: mock_mng.sh
+          state: stopped
