@@ -29,11 +29,9 @@ class Extra():
     def get_savetask(self):
         if keystone_type == "mock":
             run_obj = t("run", "mock", Extra())
-        else:
-            run_obj = t("run", self.srv, Extra(self.db))
-        if keystone_type == "mock":
             stop_obj = t("stop", "mock", Extra())
         else:
+            run_obj = t("run", self.srv, Extra(self.db))
             stop_obj = t("stop", self.srv, Extra())
         new_list = [
                 t("stop", self.db, Extra()),
