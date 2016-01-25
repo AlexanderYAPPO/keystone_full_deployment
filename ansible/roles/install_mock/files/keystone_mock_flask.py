@@ -3,7 +3,6 @@ import flask
 from flask import Flask
 from flask import jsonify
 from flask import request
-from sqlite3 import dbapi2 as sqlite
 
 import hashlib
 import datetime
@@ -17,35 +16,8 @@ PORT = 35357
 PREFIX = "req-48a3eea2-0894-4ebd-a274-a0aa56"
 COUNTER = 100000
 HASH = hashlib.sha1()
-SERVER_IP = "10.10.10.61"
+SERVER_IP = "10.10.10.10"
 DATABASE_SET = set()
-DATABASE_PATH = "/var/lib/flask/iddb.sqlite"
-
-class SQliteMng(object):
-    def __init__(self):
-        self.file_path = DATABASE_PATH 
-        self.connection = sqlite.connect(self.file_path)
-        self.connection.text_factory = str
-        self.cursor = self.connection.cursor()
-        self.cursor.execute("""\
-
-	CREATE TABLE IF NOT EXISTS iddb (
-		ID VARCHAR(50) NOT NULL
-
-	)""")
-    def addToken(self, id):
-        try:
-            self.cursor.execute("INSERT INTO iddb (ID) VALUES (?)", (id,))
-        except Exception as e:
-            print "ERROR:" + e
-        return self.cursor.lastrowid
-
-    def save(self):
-        self.connection.commit()
-
-    def close(self):
-        self.cursor.close()
-        self.connection.close()
 
 def set_custom_headers(headers):
     global COUNTER
@@ -88,11 +60,9 @@ def tokens():
     global SERVER_IP
     issued_at = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
     expires = (datetime.datetime.now()+timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    HASH.update(str(time.time()))
     token_id = HASH.hexdigest()[-33:]
     global DATABASE_SET
-    #DATABASE_SET.add(token_id)
-    database.addToken(token_id)
+    DATABASE_SET.add(token_id)
     body = {
         "access": {
             "token": {
@@ -154,7 +124,6 @@ def tokens():
     }
     resp = jsonify(body)
     set_custom_headers(resp.headers)
-    database.save()
     return resp
 
 
@@ -165,8 +134,7 @@ def tenants():
     HASH.update(str(time.time()))
     token_id = HASH.hexdigest()[-33:]
     global DATABASE_SET
-    #DATABASE_SET.add(token_id)
-    database.addToken(token_id)
+    DATABASE_SET.add(token_id)
     tenant_name = request.json["tenant"]["name"]
     body = {"tenant":
                 {"description": "null",
@@ -213,9 +181,6 @@ from werkzeug.serving import WSGIRequestHandler
 import logging
 if __name__ == '__main__':
     #WSGIRequestHandler.protocol_version = "HTTP/1.1"
-    database = SQliteMng()
     log = logging.getLogger('werkzeug')
     log.setLevel(logging.ERROR)
     app.run(host='0.0.0.0', port=35357)
-    print "END"
-    database.close()

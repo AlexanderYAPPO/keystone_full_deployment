@@ -24,7 +24,20 @@ class extra():
         self.fs = fs
         self.param1 = param1
         self.param2 = param2
-
+    def get_savetask(self):
+        LIST =  [
+                t("stop", self.db, extra()),
+                t("stop", self.srv, extra()),
+                t("mount", self.fs, extra(self.db)),
+                t("run", self.db, extra(self.db)),
+                t("run", "mock", extra()) if keystone_type == "mock" else t("run", self.srv, extra(self.db)),
+                t("func", "save", extra(self.db, self.fs, self.srv, 0, 1000)),
+                t("stop", "mock", extra()) if keystone_type == "mock" else t("stop", self.srv, extra()),
+                t("stop", self.db, extra()),
+                t("umount", self.db, extra(self.db)),
+                t("stop", "rally", extra())
+                ]
+        return LIST
 
 class t:
     def __init__(self, action, name, extra):
@@ -39,13 +52,13 @@ class GE:
         self.L = []
         if act == "install":
             LIST = [
-                #t("install", "tests", extra()),
-                #t("install", "postgresql", extra()),
-                #t("install", "mysql", extra()),
-                #t("install", "keystone", extra()),
-                #t("install", "apache", extra()),
-                #t("install", "uwsgi", extra()),
-                #("install", "rally", extra())
+                t("install", "tests", extra()),
+                t("install", "postgresql", extra()),
+                t("install", "mysql", extra()),
+                t("install", "keystone", extra()),
+                t("install", "apache", extra()),
+                t("install", "uwsgi", extra()),
+                t("install", "rally", extra()),
                 t("install", "mock", extra())
                 ]
             self.L.append(LIST)
@@ -55,41 +68,20 @@ class GE:
                 for srv in WEB_SERVERS:
                     for fs in FS:
                         LIST =  [
-                            t("run", "mock", extra()),
-                            t("stop", "mock", extra())
-                            #t("stop", db, extra()),
-                            #t("stop", srv, extra()),
-                            #t("mount", fs, extra(db)),
-                            #t("run", db, extra(db)),
-                            #t("run", srv, extra(db)),
-                            #t("func", "tests",extra(fs,db,srv, 0, 200)),
-                            #t("stop", srv, extra()),
-                            #t("stop", db, extra()),
-                            #t("umount", db, extra()),
-                            #t("stop", "rally", extra())
-                                ]
-                        self.L.append(LIST)
-        self.n = len(self.L)
-
-    def get_savetask(self):
-        L = []
-        for db in DBMS:
-            for srv in WEB_SERVERS:
-                for fs in FS:
-                    LIST =  [
                             t("stop", db, extra()),
                             t("stop", srv, extra()),
                             t("mount", fs, extra(db)),
                             t("run", db, extra(db)),
-                            t("run", srv, extra(db)),
-                            t("func", "save",extra(fs,db,srv, 0, 200)),
-                            t("stop", srv, extra()),
+                            t("run", "mock", extra()) if keystone_type == "mock" else t("run", srv, extra(db)),
+                            t("func", "tests",extra(db,fs,srv, 0, 1000)),
+                            t("stop", "mock", extra()) if keystone_type == "mock" else t("stop", srv, extra()),
                             t("stop", db, extra()),
-                            t("umount", db, extra()),
+                            t("umount", db, extra(db)),
                             t("stop", "rally", extra())
-                            ]
-        self.n = len(L)
-        return L
+                                ]
+                        
+                        self.L.append(LIST)
+        self.n = len(self.L)
 
     def __iter__(self):
         return self
@@ -140,14 +132,14 @@ class Runner:
         action = task.action
         name = task.name
         params = {}
-        if action == "mount":
+        if action == "mount" or action == "umount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {"fs_src" : name, "fs_type": fs_type}
             db = task.extra.db
             if db == "postgresql":
-                run_playbook("mount_postgresql", params)
+                run_playbook("%s_postgresql" % action, params)
             if db == "mysql":
-                run_playbook("mount_mysql", params)
+                run_playbook("%s_mysql" % action, params)
         if action == "stop" or action == "install":
             run_playbook("%s_%s" % (action, name), params)
         if action == "run":
@@ -190,6 +182,8 @@ def bin_search(L, param1, param2):
             return left
 
 def cmd_parse():
+    global keystone_type
+    keystone_type = "mock"
     return 1
 
 if __name__ == "__main__":
@@ -207,15 +201,14 @@ if __name__ == "__main__":
             if obj.name == "tests": 
                 N = bin_search(L, obj.extra.param1, obj.extra.param2) # 2
                 print "N = %s" % N
-                save_task = run_gen.get_savetask()
-                for save_obj in save_task:
-                    save_runner = Runner(save_obj)
-                    if save_obj.name == "save":
-                        for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
-                            save_runner.rps = rps
+                save_list = obj.extra.get_savetask()
+                for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
+                    for save_obj in save_list:
+                        save_runner = Runner(save_obj)
+                        if save_obj.name == "save":
+                                save_runner.rps = rps
+                                save_runner.run()
+                        else:
                             save_runner.run()
-                    else:
-                        save_runner.run()
             else:
                 runner.run()
-

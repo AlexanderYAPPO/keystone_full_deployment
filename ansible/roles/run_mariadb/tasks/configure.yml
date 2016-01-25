@@ -61,7 +61,7 @@
     - localhost
 
 - name: setting configuration file for openstack
-  copy: src=roles/ansible-mariadb/files/mysqld_openstack.cnf dest="{{ mariadb_configuration }}" owner=root group=root mode=0640 backup=yes
+  copy: src=roles/run_mariadb/files/mysqld_openstack.cnf dest="{{ mariadb_configuration }}" owner=root group=root mode=0640 backup=yes
 
 - name: setting mariadb configuration
   template: src=my.cnf.j2 dest="{{mariadb_configuration}}" owner=root group=root mode=0640 backup=yes
