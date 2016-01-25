@@ -62,7 +62,7 @@ class Generator:
         self.i = 0
         self.L = []
         if act == "install":
-            LIST = [
+            new_list = [
                 t("install", "tests", Extra()),
                 t("install", "postgresql", Extra()),
                 t("install", "mysql", Extra()),
@@ -72,7 +72,7 @@ class Generator:
                 t("install", "rally", Extra()),
                 t("install", "mock", Extra())
                 ]
-            self.L.append(LIST)
+            self.L.append(new_list)
 
         if act == "run":
             for db in BACKENDS:
@@ -80,13 +80,11 @@ class Generator:
                     for fs in HARDWARE:
                         if keystone_type == "mock":
                             run_obj = t("run", "mock", Extra())
-                        else:
-                            run_obj = t("run", self.srv, Extra(self.db))
-                        if keystone_type == "mock":
                             stop_obj = t("stop", "mock", Extra())
                         else:
-                            stop_obj = t("stop", self.srv, Extra())
-                        LIST = [
+                            run_obj = t("run", self.srv, Extra(self.db))
+                            stop_obj = t("stop", self.srv, Extra())                            
+                        new_list = [
                             t("stop", db, Extra()),
                             t("stop", srv, Extra()),
                             t("mount", fs, Extra(db)),
@@ -98,7 +96,7 @@ class Generator:
                             t("umount", db, Extra(db)),
                             t("stop", "rally", Extra())
                                 ]
-                        self.L.append(LIST)
+                        self.L.append(new_list)
         self.n = len(self.L)
 
     def __iter__(self):
