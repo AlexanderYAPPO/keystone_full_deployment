@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 import os
 import getpass
+import argparse
 from sys import argv
 from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
 from degr import DegradationCheck
-
-USERNAME = getpass.getuser()  # current user's username
-PASSWORD = getpass.getpass()  # sudo pasword
 
 WEB_SERVERS = ["apache", "uwsgi"]
 BACKENDS = ["postgresql", "mysql"]  # database type
@@ -26,27 +24,6 @@ class Extra():
         self.param1 = param1
         self.param2 = param2
 
-    def get_savetask(self):
-        if keystone_type == "mock":
-            run_obj = t("run", "mock", Extra())
-            stop_obj = t("stop", "mock", Extra())
-        else:
-            run_obj = t("run", self.srv, Extra(self.db))
-            stop_obj = t("stop", self.srv, Extra())
-        new_list = [
-                t("stop", self.db, Extra()),
-                t("stop", self.srv, Extra()),
-                t("mount", self.fs, Extra(self.db)),
-                t("run", self.db, Extra(self.db)),
-                run_obj,
-                t("func", "save", Extra(self.db, self.fs, self.srv, 0, 1000)),
-                stop_obj,
-                t("stop", self.db, Extra()),
-                t("umount", self.db, Extra(self.db)),
-                t("stop", "rally", Extra())
-                ]
-        return new_list
-
 
 class t:
     def __init__(self, action, name, extra):
@@ -58,7 +35,7 @@ class t:
 class Generator:
     def __init__(self, act):
         self.i = 0
-        self.L = []
+        self.gen_list = []
         if act == "install":
             new_list = [
                 t("install", "tests", Extra()),
@@ -70,32 +47,35 @@ class Generator:
                 t("install", "rally", Extra()),
                 t("install", "mock", Extra())
                 ]
-            self.L.append(new_list)
+            self.gen_list.append(new_list)
 
-        if act == "run":
+        elif act == "default":
             for db in BACKENDS:
                 for srv in WEB_SERVERS:
                     for fs in HARDWARE:
-                        if keystone_type == "mock":
-                            run_obj = t("run", "mock", Extra())
-                            stop_obj = t("stop", "mock", Extra())
-                        else:
-                            run_obj = t("run", self.srv, Extra(self.db))
-                            stop_obj = t("stop", self.srv, Extra())                            
                         new_list = [
                             t("stop", db, Extra()),
                             t("stop", srv, Extra()),
                             t("mount", fs, Extra(db)),
                             t("run", db, Extra(db)),
-                            run_obj,
-                            t("func", "tests", Extra(db, fs, srv, 0, 1000)),
-                            stop_obj,
+                            t("run", srv, Extra(db)),
+                            t("func", "tests", Extra(db, fs, srv, 0, 200)),
+                            t("stop", srv, Extra()),
                             t("stop", db, Extra()),
                             t("umount", db, Extra(db)),
                             t("stop", "rally", Extra())
-                                ]
-                        self.L.append(new_list)
-        self.n = len(self.L)
+                            ]
+                        self.gen_list.append(new_list)
+
+        elif act == "mock":
+            new_list = [
+                t("run", "mock", Extra()),
+                t("func", "tests", Extra("flask", "flask", "flask", 0, 1000)),
+                t("stop", "mock", Extra()),
+                t("stop", "rally", Extra())
+                ]
+            self.gen_list.append(new_list)
+        self.n = len(self.gen_list)
 
     def __iter__(self):
         return self
@@ -104,34 +84,9 @@ class Generator:
         if self.i < self.n:
             i = self.i
             self.i += 1
-            return self.L[i]
+            return self.gen_list[i]
         else:
             raise StopIteration()
-
-
-def run_playbook(name, params):
-    utils.VERBOSITY = 0
-    playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-    stats = callbacks.AggregateStats()
-    runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
-                                                  verbose=utils.VERBOSITY)
-    pb = PlayBook(
-        playbook='/home/%s/keystone_full_deployment/ansible/%s.yml'
-                 % (USERNAME, name),
-        host_list="/home/%s/keystone_full_deployment/ansible/hosts" % USERNAME,
-        remote_user=USERNAME,
-        callbacks=playbook_cb,
-        runner_callbacks=runner_cb,
-        stats=stats,
-        private_key_file='/home/%s/.ssh/id_rsa' % USERNAME,
-        become=True,
-        become_pass="%s\n" % PASSWORD,
-        become_method='sudo',
-        extra_vars=params
-    )
-    results = pb.run()
-    playbook_cb.on_stats(pb.stats)
-    return results
 
 
 class Runner:
@@ -143,85 +98,134 @@ class Runner:
         task = self.task
         action = task.action
         name = task.name
+        extra = task.extra
         params = {}
         if action == "mount" or action == "umount":
             fs_type = "tmpfs" if name == "tmpfs" else "ext4"
-            params = {"fs_src": name, "fs_type": fs_type}
-            db = task.extra.db
-            run_playbook("%s_%s" % (action, db), params)
-        if action == "stop" or action == "install":
-            run_playbook("%s_%s" % (action, name), params)
-        if action == "run":
+            params = {
+                "fs_src": name,
+                "fs_type": fs_type
+                }
+            self.run_playbook("%s_%s" % (action, extra.db), params)
+        elif action == "stop" or action == "install":
+            self.run_playbook("%s_%s" % (action, name), params)
+        elif action == "run":
             if name in WEB_SERVERS:
-                params = {"global_db": task.extra.db}
-            run_playbook("%s_%s" % (action, name), params)
-
-        if action == "func":
-            extra = task.extra
+                params = {"global_db": extra.db}
+            self.run_playbook("%s_%s" % (action, name), params)
+        elif action == "func":
             if name == "tests":
                 rps = self.rps
                 d = DegradationCheck(extra.fs, extra.db, extra.srv)
                 isdeg = d.read_json(self.rps)
                 return isdeg
-            if name == "save":
+            elif name == "save":
                 rps = self.rps
                 d = DegradationCheck(extra.fs, extra.db, extra.srv)
                 d.read_json(self.rps)
                 d.save_results(self.rps)
 
+    def run_playbook(self, name, params):
+        utils.VERBOSITY = 0
+        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
+        stats = callbacks.AggregateStats()
+        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
+                                                      verbose=utils.VERBOSITY)
+        pb = PlayBook(
+            playbook='/home/%s/keystone_full_deployment/ansible/%s.yml'
+                     % (USER, name),
+            host_list="/home/%s/keystone_full_deployment/ansible/hosts" % USER,
+            remote_user=USER,
+            callbacks=playbook_cb,
+            runner_callbacks=runner_cb,
+            stats=stats,
+            private_key_file='/home/%s/.ssh/id_rsa' % USER,
+            become=True,
+            become_pass="%s\n" % PASSWORD,
+            become_method='sudo',
+            extra_vars=params
+        )
+        results = pb.run()
+        playbook_cb.on_stats(pb.stats)
+        return results
 
-def bin_search(L, param1, param2):
-    left = param1
-    right = param2
-    while True:
-        m = int((left + right) / 2)
-        degr = None
-        for obj in L:
+
+def save_func(n, cur_list):
+    save_list = cur_list
+    for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
+        for obj in save_list:
             runner = Runner(obj)
             if obj.name == "tests":
+                runner = Runner(t("func", "save", obj.extra))
+                runner.rps = rps
+            runner.run()
+
+
+def bin_search(cur_list):
+    while True:
+        for obj in cur_list:
+            runner = Runner(obj)
+            if obj.name != "tests":
+                runner.run()
+            else:
+                m = int((obj.extra.param1 + obj.extra.param2) / 2)
                 runner.rps = m
                 degr = runner.run()
-            else:
-                runner.run()
-        if degr:
-            right = m
-        else:
-            left = m
-        if right == left + 1:
-            return left
+                if degr:
+                    obj.extra.param2 = m
+                else:
+                    obj.extra.param1 = m
+                if obj.extra.param2 == obj.extra.param1 + 1:
+                    return left
 
 
-def cmd_parse():
-    global keystone_type
-    #keystone_type = "mock"
-    keystone_type = "default"
-    return 1
+def arg_parser():
+    parser = argparse.ArgumentParser(
+        prog='runner',
+        description='''This program can start rally tests.''',
+        add_help=True
+        )
+    parser.add_argument(
+        '--mock',
+        action='store_true',
+        default=False,
+        help='mock flag'
+        )
+    sub = parser.add_subparsers(
+        dest='action',
+        title='mode'
+        )
+    install_parser = sub.add_parser(
+            'install',
+            help='install mode'
+            )
+    run_parser = sub.add_parser(
+            'run',
+            help='run mode'
+            )
+    return parser
 
 
 if __name__ == "__main__":
-    inst = cmd_parse()
-    if inst:
+    parser = arg_parser()
+    parse_result = parser.parse_args()
+    USER = getpass.getuser()  # current user's username
+    PASSWORD = getpass.getpass()  # sudo pasword
+    if parse_result.action == "install":
         install_gen = Generator("install")
-        for L in install_gen:
-            for obj in L:
+        for next_list in install_gen:
+            for obj in next_list:
                 runner = Runner(obj)
                 runner.run()
-    run_gen = Generator("run")
-    for L in run_gen:
-        for obj in L:
-            runner = Runner(obj)
-            if obj.name == "tests":
-                N = bin_search(L, obj.extra.param1, obj.extra.param2)
-                print "N = %s" % N
-                save_list = obj.extra.get_savetask()
-                for rps in (N - 1, N, N + 1, N + 3, N + 5, 2 * N):
-                    for save_obj in save_list:
-                        save_runner = Runner(save_obj)
-                        if save_obj.name == "save":
-                                save_runner.rps = rps
-                                save_runner.run()
-                        else:
-                            save_runner.run()
-            else:
-                runner.run()
+    else:
+        run_type = "default"
+        if parse_result.mock:
+            run_type = "mock"
+        run_gen = Generator(run_type)
+        for next_list in run_gen:
+            n = bin_search(next_list)
+            print "="*10
+            print "N = %s" % n
+            print "="*10
+            save_func(n, next_list)
 

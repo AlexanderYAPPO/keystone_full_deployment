@@ -9,7 +9,7 @@ from scipy import stats
 #from pylab import plot,xlim,ylim,savefig
 from subprocess import Popen, PIPE, check_output
 
-THRESHOLD = 0.001
+THRESHOLD = 0.01
 TIMES = 120
 DEP_NAME = "existing"
 HOME_DIR = "/home/%s" % getpass.getuser()
@@ -114,7 +114,9 @@ class DegradationCheck:
         #savefig(self.results_dir + "/%s.png" % rps)
 
     def read_json(self, rps):
+        print "="*10
         print "rps: ", rps
+        print "="*10
         self.create_dir(self.results_dir)
         id, json_data = self.get_results(rps)
         if id == False:
