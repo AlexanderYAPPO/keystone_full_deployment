@@ -7,7 +7,7 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
+      value: "{{ global_database }}://keystone:{{ global_keystone_password }}@localhost/keystone"
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'

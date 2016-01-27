@@ -10,22 +10,24 @@ from degr import DegradationCheck
 
 WEB_SERVERS = ["apache", "uwsgi"]
 BACKENDS = ["postgresql", "mysql"]  # database type
-HARDWARE = ("/dev/sda7",  # HDD
-            "tmpfs",  # overlay
-            "/dev/sdb1"  # SSD
-            )
+HARDWARE_LIST = (
+    "/dev/sda7",  # HDD
+    "tmpfs",  # overlay
+    "/dev/sdb1"  # SSD
+    )
 
 
 class Extra():
-    def __init__(self, db=None, fs=None, srv=None, param1=0, param2=0):
-        self.db = db
-        self.srv = srv
-        self.fs = fs
+    def __init__(self, database=None, hardware=None,
+                 web_server=None, param1=None, param2=None):
+        self.database = database
+        self.web_server = web_server
+        self.hardware = hardware
         self.param1 = param1
         self.param2 = param2
 
 
-class t:
+class Task:
     def __init__(self, action, name, extra):
         self.action = action
         self.name = name
@@ -38,41 +40,51 @@ class Generator:
         self.gen_list = []
         if act == "install":
             new_list = [
-                t("install", "tests", Extra()),
-                t("install", "postgresql", Extra()),
-                t("install", "mysql", Extra()),
-                t("install", "keystone", Extra()),
-                t("install", "apache", Extra()),
-                t("install", "uwsgi", Extra()),
-                t("install", "rally", Extra()),
-                t("install", "mock", Extra())
+                Task("install", "tests", Extra()),
+                Task("install", "postgresql", Extra()),
+                Task("install", "mysql", Extra()),
+                Task("install", "keystone", Extra()),
+                Task("install", "apache", Extra()),
+                Task("install", "uwsgi", Extra()),
+                Task("install", "rally", Extra()),
+                Task("install", "mock", Extra())
                 ]
             self.gen_list.append(new_list)
 
         elif act == "default":
-            for db in BACKENDS:
-                for srv in WEB_SERVERS:
-                    for fs in HARDWARE:
+            for database in BACKENDS:
+                for web_server in WEB_SERVERS:
+                    for hardware in HARDWARE_LIST:
                         new_list = [
-                            t("stop", db, Extra()),
-                            t("stop", srv, Extra()),
-                            t("mount", fs, Extra(db)),
-                            t("run", db, Extra(db)),
-                            t("run", srv, Extra(db)),
-                            t("func", "tests", Extra(db, fs, srv, 0, 200)),
-                            t("stop", srv, Extra()),
-                            t("stop", db, Extra()),
-                            t("umount", db, Extra(db)),
-                            t("stop", "rally", Extra())
+                            Task("stop", database, Extra()),
+                            Task("stop", web_server, Extra()),
+                            Task("mount", hardware, Extra(database)),
+                            Task("run", database, Extra(database)),
+                            Task("run", web_server, Extra(database)),
+                            Task("func", "tests", Extra(database,
+                                                        hardware,
+                                                        web_server,
+                                                        0,
+                                                        200
+                                                        )),
+                            Task("stop", web_server, Extra()),
+                            Task("stop", database, Extra()),
+                            Task("umount", database, Extra(database)),
+                            Task("stop", "rally", Extra())
                             ]
                         self.gen_list.append(new_list)
 
         elif act == "mock":
             new_list = [
-                t("run", "mock", Extra()),
-                t("func", "tests", Extra("flask", "flask", "flask", 0, 1000)),
-                t("stop", "mock", Extra()),
-                t("stop", "rally", Extra())
+                Task("run", "mock", Extra()),
+                Task("func", "tests", Extra("flask",
+                                            "flask",
+                                            "flask",
+                                            700,
+                                            800
+                                            )),
+                Task("stop", "mock", Extra()),
+                Task("stop", "rally", Extra())
                 ]
             self.gen_list.append(new_list)
         self.n = len(self.gen_list)
@@ -101,27 +113,29 @@ class Runner:
         extra = task.extra
         params = {}
         if action == "mount" or action == "umount":
-            fs_type = "tmpfs" if name == "tmpfs" else "ext4"
+            hardware_type = "tmpfs" if name == "tmpfs" else "ext4"
             params = {
-                "fs_src": name,
-                "fs_type": fs_type
+                "hardware_src": name,
+                "hardware_type": hardware_type
                 }
-            self.run_playbook("%s_%s" % (action, extra.db), params)
+            self.run_playbook("%s_%s" % (action, extra.database), params)
         elif action == "stop" or action == "install":
             self.run_playbook("%s_%s" % (action, name), params)
         elif action == "run":
             if name in WEB_SERVERS:
-                params = {"global_db": extra.db}
+                params = {"global_database": extra.database}
             self.run_playbook("%s_%s" % (action, name), params)
         elif action == "func":
             if name == "tests":
                 rps = self.rps
-                d = DegradationCheck(extra.fs, extra.db, extra.srv)
-                isdeg = d.read_json(self.rps)
-                return isdeg
+                d = DegradationCheck(extra.hardware, extra.database,
+                                     extra.web_server)
+                is_degradation = d.is_degradation(self.rps)
+                return is_degradation
             elif name == "save":
                 rps = self.rps
-                d = DegradationCheck(extra.fs, extra.db, extra.srv)
+                d = DegradationCheck(extra.hardware, extra.database,
+                                     extra.web_server)
                 d.read_json(self.rps)
                 d.save_results(self.rps)
 
@@ -131,52 +145,23 @@ class Runner:
         stats = callbacks.AggregateStats()
         runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
                                                       verbose=utils.VERBOSITY)
+        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
         pb = PlayBook(
-            playbook='/home/%s/keystone_full_deployment/ansible/%s.yml'
-                     % (USER, name),
-            host_list="/home/%s/keystone_full_deployment/ansible/hosts" % USER,
-            remote_user=USER,
+            playbook='%s/%s.yml' % (ansible_dir, name),
+            host_list="%s/hosts" % ansible_dir,
+            remote_user=_user,
             callbacks=playbook_cb,
             runner_callbacks=runner_cb,
             stats=stats,
-            private_key_file='/home/%s/.ssh/id_rsa' % USER,
+            private_key_file='/home/%s/.ssh/id_rsa' % _user,
             become=True,
-            become_pass="%s\n" % PASSWORD,
+            become_pass="%s\n" % _password,
             become_method='sudo',
             extra_vars=params
         )
         results = pb.run()
         playbook_cb.on_stats(pb.stats)
         return results
-
-
-def save_func(n, cur_list):
-    save_list = cur_list
-    for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
-        for obj in save_list:
-            runner = Runner(obj)
-            if obj.name == "tests":
-                runner = Runner(t("func", "save", obj.extra))
-                runner.rps = rps
-            runner.run()
-
-
-def bin_search(cur_list):
-    while True:
-        for obj in cur_list:
-            runner = Runner(obj)
-            if obj.name != "tests":
-                runner.run()
-            else:
-                m = int((obj.extra.param1 + obj.extra.param2) / 2)
-                runner.rps = m
-                degr = runner.run()
-                if degr:
-                    obj.extra.param2 = m
-                else:
-                    obj.extra.param1 = m
-                if obj.extra.param2 == obj.extra.param1 + 1:
-                    return left
 
 
 def arg_parser():
@@ -196,22 +181,47 @@ def arg_parser():
         title='mode'
         )
     install_parser = sub.add_parser(
-            'install',
-            help='install mode'
-            )
+        'install',
+        help='install mode'
+        )
     run_parser = sub.add_parser(
-            'run',
-            help='run mode'
-            )
+        'run',
+        help='run mode'
+        )
     return parser
 
 
-if __name__ == "__main__":
-    parser = arg_parser()
-    parse_result = parser.parse_args()
-    USER = getpass.getuser()  # current user's username
-    PASSWORD = getpass.getpass()  # sudo pasword
-    if parse_result.action == "install":
+def save_func(n, cur_list):
+    save_list = cur_list
+    for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
+        for obj in save_list:
+            runner = Runner(obj)
+            if obj.name == "tests":
+                runner = Runner(Task("func", "save", obj.extra))
+                runner.rps = rps
+            runner.run()
+
+
+def bin_search(cur_list):
+    while True:
+        for obj in cur_list:
+            runner = Runner(obj)
+            if obj.name != "tests":
+                runner.run()
+            else:
+                m = int((obj.extra.param1 + obj.extra.param2) / 2)
+                runner.rps = m
+                degr = runner.run()
+                if degr:
+                    obj.extra.param2 = m
+                else:
+                    obj.extra.param1 = m
+                if obj.extra.param2 == obj.extra.param1 + 1:
+                    return obj.extra.param1
+
+
+def main():
+    if _parse_result.action == "install":
         install_gen = Generator("install")
         for next_list in install_gen:
             for obj in next_list:
@@ -219,7 +229,7 @@ if __name__ == "__main__":
                 runner.run()
     else:
         run_type = "default"
-        if parse_result.mock:
+        if _parse_result.mock:
             run_type = "mock"
         run_gen = Generator(run_type)
         for next_list in run_gen:
@@ -228,4 +238,12 @@ if __name__ == "__main__":
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
+
+
+if __name__ == "__main__":
+    _parser = arg_parser()
+    _parse_result = _parser.parse_args()
+    _user = getpass.getuser()  # current _user's username
+    _password = getpass.getpass()  # sudo pasword
+    main()
 

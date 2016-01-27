@@ -3,7 +3,7 @@
 - hosts: all
 
   pre_tasks:
-    - mount: name={{mariadb_datadir}} src={{fs_src}} fstype={{fs_type}} state=mounted
+    - mount: name={{mariadb_datadir}} src={{hardware_src}} fstype={{hardware_type}} state=mounted
 
     - shell: "rm -rf {{mariadb_datadir}}/*"
       sudo: yes

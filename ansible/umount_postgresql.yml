@@ -3,6 +3,6 @@
 - hosts: all
 
   tasks:
-    - name: Umount POSTGRES
-      mount: name="/var/lib/postgresql" src={{fs_src}} fstype={{fs_type}} state=unmounted
+    - name: umount (postgresql)
+      mount: name="/var/lib/postgresql" src={{hardware_src}} fstype={{hardware_type}} state=unmounted
       sudo: yes
