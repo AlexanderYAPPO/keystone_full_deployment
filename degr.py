@@ -16,13 +16,13 @@ RALLY_PATH = "%s/rally/bin/rally" % HOME_DIR
 
 
 class DegradationCheck:
-    def __init__(self, fs, db, srv):
+    def __init__(self, hardware, database, web_server):
         home_dir = "/home/%s" % getpass.getuser()
         self.id_dict = {}  # {rps : id}
         self.results_dir = "%s/results/%s/%s/%s" % (home_dir,
-                                                    fs.replace("/", ""),
-                                                    db,
-                                                    srv
+                                                    hardware.replace("/", ""),
+                                                    database,
+                                                    web_server
                                                     )
 
     def create_dir(self, path):
