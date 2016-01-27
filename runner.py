@@ -130,13 +130,12 @@ class Runner:
                 rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server)
-                is_degradation = d.is_degradation(self.rps)
-                return is_degradation
+                return d.is_degradation(self.rps)
             elif name == "save":
                 rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server)
-                d.read_json(self.rps)
+                d.is_degradation(self.rps)
                 d.save_results(self.rps)
 
     def run_playbook(self, name, params):

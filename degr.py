@@ -18,7 +18,7 @@ RALLY_PATH = "%s/rally/bin/rally" % HOME_DIR
 class DegradationCheck:
     def __init__(self, fs, db, srv):
         home_dir = "/home/%s" % getpass.getuser()
-        self.ID_DICT = {}  # {rps : id}
+        self.id_dict = {}  # {rps : id}
         self.results_dir = "%s/results/%s/%s/%s" % (home_dir,
                                                     fs.replace("/", ""),
                                                     db,
@@ -29,14 +29,14 @@ class DegradationCheck:
         if not os.path.exists(path):
             os.makedirs(path)
 
-    def lin_regress(self, tmp_X, tmp_Y, n_errors):
+    def lin_regress(self, tmp_x, tmp_y, n_errors):
         if n_errors != 0:
             return True
-        if not len(tmp_X) or not len(tmp_Y):
+        if not len(tmp_x) or not len(tmp_y):
             return False
-        X = array(tmp_X)
-        Y = array(tmp_Y)
-        a = stats.linregress(X, Y)[0]  # getting slope
+        x_arr = array(tmp_x)
+        y_arr = array(tmp_y)
+        a = stats.linregress(x_arr, y_arr)[0]  # getting slope
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
             f.write("a: %s, errors: %s\n" % (a, n_errors))
         if a > THRESHOLD:
@@ -44,29 +44,20 @@ class DegradationCheck:
         return False
 
     def update_rps(self, rps):
-        task_dict = {"Authenticate.keystone": [{}]}
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"] = {}
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"] = {}
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"]["project_domain"] = "default"
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"]["resource_management_workers"] = 1
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"]["tenants"] = 1
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"]["user_domain"] = "default"
-        task_dict["Authenticate.keystone"][0]\
-                        ["context"]["users"]["users_per_tenant"] = 1
-        task_dict["Authenticate.keystone"][0]\
-                        ["runner"] = {}
-        task_dict["Authenticate.keystone"][0]\
-                        ["runner"]["rps"] = int(rps)
-        task_dict["Authenticate.keystone"][0]\
-                        ["runner"]["times"] = int(rps * TIMES)
-        task_dict["Authenticate.keystone"][0]\
-                        ["runner"]["type"] = "rps"
+        context = {}
+        runner = {}
+        context["project_domain"] = "default"
+        context["resource_management_workers"] = 1
+        context["tenants"] = 1
+        context["user_domain"] = "default"
+        context["users_per_tenant"] = 1
+        runner["rps"] = int(rps)
+        runner["times"] = int(rps * TIMES)
+        runner["type"] = "rps"
+        task_dict = {"Authenticate.keystone": [{
+            "context": {"users": context},
+            "runner": runner
+            }]}
         with open(HOME_DIR + "/nfind.json", 'wb') as outfile:
             json.dump(task_dict, outfile)
 
@@ -91,8 +82,8 @@ class DegradationCheck:
         return (id, result.decode("utf-8"))
 
     def save_results(self, rps):
-        if rps in self.ID_DICT:
-            id = self.ID_DICT[rps]
+        if rps in self.id_dict:
+            id = self.id_dict[rps]
         json_data = check_output("%s task results %s" % (RALLY_PATH, id),
                                  shell=True).decode("utf-8")
         with open(self.results_dir + '/%s_j.json' % rps, 'wb') as outfile:
@@ -108,18 +99,18 @@ class DegradationCheck:
         id, json_data = self.get_results(rps)
         if not id:
             return True
-        self.ID_DICT[rps] = id
-        tmp_X = []
-        tmp_Y = []
-        n_errors = 0
+        self.id_dict[rps] = id
+        tmp_x = []
+        tmp_y = []
         full_json = json.loads(json_data)[0]
         t1 = full_json["result"][0]["timestamp"]
+        n_errors = 0
         iter = 0
         for result in full_json["result"]:
             t2 = result["timestamp"] - t1
             if t2 > 60:
-                tmp_X.append(result["timestamp"])
-                tmp_Y.append(float(result["duration"]))
+                tmp_x.append(result["timestamp"])
+                tmp_y.append(float(result["duration"]))
             else:
                 iter += 1
             if len(result["error"]) != 0:
@@ -129,5 +120,5 @@ class DegradationCheck:
                                                                       iter,
                                                                       n_errors
                                                                       ))
-        return self.lin_regress(tmp_X, tmp_Y, n_errors)
+        return self.lin_regress(tmp_x, tmp_y, n_errors)
 
