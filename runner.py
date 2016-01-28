@@ -56,15 +56,15 @@ class Generator:
                 for web_server in WEB_SERVERS:
                     for hardware in HARDWARE_LIST:
                         new_list = [
-                            Task("stop", database, Extra()),
-                            Task("stop", web_server, Extra()),
+                            #Task("stop", database, Extra()),
+                            #Task("stop", web_server, Extra()),
                             Task("mount", hardware, Extra(database)),
                             Task("run", database, Extra(database)),
                             Task("run", web_server, Extra(database)),
                             Task("func", "tests", Extra(database,
                                                         hardware,
                                                         web_server,
-                                                        0,
+                                                        1,
                                                         200
                                                         )),
                             Task("stop", web_server, Extra()),
@@ -202,7 +202,8 @@ def save_func(n, cur_list):
 
 
 def bin_search(cur_list):
-    while True:
+    result = 0
+    while not result:
         for obj in cur_list:
             runner = Runner(obj)
             if obj.name != "tests":
@@ -216,7 +217,9 @@ def bin_search(cur_list):
                 else:
                     obj.extra.param1 = m
                 if obj.extra.param2 == obj.extra.param1 + 1:
-                    return obj.extra.param1
+                    result = obj.extra.param1
+    return result
+    
 
 
 def main():
@@ -244,5 +247,12 @@ if __name__ == "__main__":
     _parse_result = _parser.parse_args()
     _user = getpass.getuser()  # current _user's username
     _password = getpass.getpass()  # sudo pasword
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "\n"+"="*10
+        print "interrupted"
+        print "="*10
+        for service in BACKENDS + WEB_SERVERS:
+            Runner(Task("stop", service, Extra())).run()
 
