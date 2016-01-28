@@ -1,9 +1,9 @@
 - name: copy nginx config
-  template: src=roles/openstack-keystone/templates/nginx.conf.j2 dest=/etc/nginx/nginx.conf
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
   sudo: yes
 
 - name: Create server blocks
-  template: src=roles/openstack-keystone/templates/keystone_server_block.j2 dest=/etc/nginx/sites-available/keystone
+  template: src=keystone_server_block.j2 dest=/etc/nginx/sites-available/keystone
   sudo: yes
 
 - name: check keystone slink is present
@@ -15,7 +15,7 @@
   when: link_is_ok.stat.exists == False
 
 - name: copy uwsgi ini file
-  template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
+  template: src=uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
   with_items:
     - { endpoint_role: 'admin' }
     - { endpoint_role: 'main' }

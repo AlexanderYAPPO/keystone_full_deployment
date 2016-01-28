@@ -53,7 +53,7 @@
       value:    "{{ keystone_port }}"
 
 - name: Deploy policy.json file
-  copy: src=roles/openstack-keystone/files/policy.json dest=/etc/keystone/policy.json owner={{ global_os_user }}
+  copy: src=policy.json dest=/etc/keystone/policy.json owner={{ global_os_user }}
 
 - name: Configure Keystone database
   ini_file: >
@@ -67,6 +67,6 @@
       value: "{{ keystone_database_url }}"
 
 - name: Copy keystone-paste.ini
-  copy: src=roles/openstack-keystone/files/keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}
+  copy: src=keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}
 
 

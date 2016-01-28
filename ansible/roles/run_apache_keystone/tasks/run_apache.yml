@@ -6,7 +6,7 @@
 
 
 - name: Copy WSGI config
-  template: src=roles/openstack-keystone/templates/wsgi-keystone.conf.j2 dest=/etc/apache2/sites-available/wsgi-keystone.conf
+  template: src=wsgi-keystone.conf.j2 dest=/etc/apache2/sites-available/wsgi-keystone.conf
   sudo: yes
 
 

@@ -1,6 +1,0 @@
-- include: first.yml
-  when: install_flag == "yes"
-
-- include: second.yml
-  when: install_flag == "no"
-

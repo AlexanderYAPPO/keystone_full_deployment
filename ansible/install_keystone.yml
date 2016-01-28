@@ -2,7 +2,7 @@
 
 - hosts: all
   roles:
-    - role: openstack-keystone
+    - role: install_openstack-keystone
       install_flag: "yes"
       keystone_dir: /home/{{ global_os_user }}/keystone
       keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
