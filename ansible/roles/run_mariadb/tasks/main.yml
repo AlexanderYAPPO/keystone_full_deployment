@@ -1,0 +1,11 @@
+---
+
+- include: configure.yml
+  tags: [mariadb]
+
+- include: databases.yml
+  tags: [mariadb]
+
+- include: users.yml
+  tags: [mariadb]
+

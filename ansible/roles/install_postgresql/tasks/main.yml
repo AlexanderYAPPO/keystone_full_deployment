@@ -1,0 +1,8 @@
+# file: postgresql/tasks/main.yml
+
+- include: install.yml
+  tags: [postgresql, postgresql-install]
+- include: extensions.yml
+
+
+

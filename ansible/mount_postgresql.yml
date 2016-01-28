@@ -1,0 +1,11 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - mount: name="/var/lib/postgresql/" src={{hardware_src}} fstype={{hardware_type}} state=mounted
+      sudo: yes
+
+    - shell: "rm -rf /var/lib/postgresql/*"
+      sudo: yes
+      ignore_errors: yes

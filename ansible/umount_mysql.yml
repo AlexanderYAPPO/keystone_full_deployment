@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+
+  tasks:
+    - name: umount (mysql)
+      mount: name={{mariadb_datadir}} src={{hardware_src}} fstype={{hardware_type}} state=unmounted
+      sudo: yes
+  vars:
+      mariadb_datadir: /var/lib/mysql

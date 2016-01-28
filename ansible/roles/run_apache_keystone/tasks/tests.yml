@@ -1,0 +1,8 @@
+- name: test
+  template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
+  with_items:
+    - { endpoint_role: 'admin' }
+    - { endpoint_role: 'main' }
+
+- name: test
+  template: src=roles/openstack-keystone/templates/uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-1.ini owner={{ global_os_user }}

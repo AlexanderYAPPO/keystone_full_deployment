@@ -1,0 +1,6 @@
+- name: copy mock_mng script
+  template: src=mock_mng.sh.j2 dest="/etc/init.d/mock_mng.sh" owner={{ global_os_user }} group={{ global_os_user }} mode=0751
+    
+- name: copy keystone_mock script
+  copy: src=roles/install_mock/files/keystone_mock_flask.py dest="/home/{{global_os_user}}/keystone_mock_flask.py" owner={{global_os_user}} group={{global_os_user}} mode=0751
+

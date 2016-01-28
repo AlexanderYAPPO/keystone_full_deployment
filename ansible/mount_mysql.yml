@@ -1,0 +1,16 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - mount: name={{mariadb_datadir}} src={{hardware_src}} fstype={{hardware_type}} state=mounted
+
+    - shell: "rm -rf {{mariadb_datadir}}/*"
+      sudo: yes
+
+    - command: chown mysql:mysql {{mariadb_datadir}} -R
+  vars:
+      mariadb_datadir: /var/lib/mysql
+
+
+
