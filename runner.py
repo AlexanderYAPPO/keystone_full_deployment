@@ -80,8 +80,8 @@ class Generator:
                 Task("func", "tests", Extra("flask",
                                             "flask",
                                             "flask",
-                                            700,
-                                            800
+                                            500,
+                                            1000
                                             )),
                 Task("stop", "mock", Extra()),
                 Task("stop", "rally", Extra())
