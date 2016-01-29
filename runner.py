@@ -97,67 +97,60 @@ class Generator:
         else:
             raise StopIteration()
 
+def run_playbook(name, **kwargs):
+    utils.VERBOSITY = 0
+    playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
+    stats = callbacks.AggregateStats()
+    runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
+                                                  verbose=utils.VERBOSITY)
+    ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
+    pb = PlayBook(
+        playbook='%s/%s.yml' % (ansible_dir, name),
+        host_list="%s/hosts" % ansible_dir,
+        remote_user=_user,
+        callbacks=playbook_cb,
+        runner_callbacks=runner_cb,
+        stats=stats,
+        private_key_file='/home/%s/.ssh/id_rsa' % _user,
+        become=True,
+        become_pass="%s\n" % _password,
+        become_method='sudo',
+        extra_vars=kwargs
+    )
+    results = pb.run()
+    playbook_cb.on_stats(pb.stats)
+    return results
 
 class Runner:
-    def __init__(self, task):
-        self.task = task
-        self.rps = None
-
-    def run(self):
-        task = self.task
+    @staticmethod
+    def run(task, rps=0):
         action = task.action
         name = task.name
         extra = task.extra
         if action == "mount" or action == "umount":
             hardware_type = "tmpfs" if name == "tmpfs" else "ext4"
-            self.run_playbook("%s_%s" % (action, extra.database),
+            run_playbook("%s_%s" % (action, extra.database),
                 hardware_src="name",
                 hardware_type="hardware_type"
                 )
         elif action == "stop" or action == "install":
-            self.run_playbook("%s_%s" % (action, name))
+            run_playbook("%s_%s" % (action, name))
         elif action == "run":
             if name in WEB_SERVERS:
-                self.run_playbook("%s_%s" % (action, name), 
+                run_playbook("%s_%s" % (action, name), 
                                     global_database=extra.database)
             else:
-                self.run_playbook("%s_%s" % (action, name))
+                run_playbook("%s_%s" % (action, name))
         elif action == "func":
             if name == "tests":
-                rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server, _user)
-                return d.is_degradation(self.rps)
+                return d.is_degradation(rps)
             elif name == "save":
-                rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server, _user)
-                d.is_degradation(self.rps)
-                d.save_results(self.rps)
-
-    def run_playbook(self, name, **kwargs):
-        utils.VERBOSITY = 0
-        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        stats = callbacks.AggregateStats()
-        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
-                                                      verbose=utils.VERBOSITY)
-        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
-        pb = PlayBook(
-            playbook='%s/%s.yml' % (ansible_dir, name),
-            host_list="%s/hosts" % ansible_dir,
-            remote_user=_user,
-            callbacks=playbook_cb,
-            runner_callbacks=runner_cb,
-            stats=stats,
-            private_key_file='/home/%s/.ssh/id_rsa' % _user,
-            become=True,
-            become_pass="%s\n" % _password,
-            become_method='sudo',
-            extra_vars=kwargs
-        )
-        results = pb.run()
-        playbook_cb.on_stats(pb.stats)
-        return results
+                d.is_degradation(rps)
+                d.save_results(rps)
 
 
 def arg_parser():
@@ -196,30 +189,26 @@ def arg_parser():
 def save_func(n, cur_config):
     for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
         for obj in cur_config:
-            runner = Runner(obj)
             if obj.name == "tests":
-                runner = Runner(Task("func", "save", obj.extra))
-                runner.rps = rps
-            runner.run()
+                Runner.run(Task("func", "save", obj.extra))
+            Runner.run(Task("func", "save", obj.extra))
 
 
 def bin_search(cur_config):
     result = 0
     while not result:
         for obj in cur_config:
-            runner = Runner(obj)
-            if obj.name != "tests":
-                runner.run()
-            else:
+            if obj.name == "tests":
                 m = int((obj.extra.param1 + obj.extra.param2) / 2)
-                runner.rps = m
-                degr = runner.run()
+                degr = Runner.run(obj, rps)
                 if degr:
                     obj.extra.param2 = m
                 else:
                     obj.extra.param1 = m
                 if obj.extra.param2 == obj.extra.param1 + 1:
                     result = obj.extra.param1
+            else:
+                Runner.run(obj)
     return result
     
 
@@ -229,8 +218,8 @@ def main():
         install_gen = Generator("install")
         for next_list in install_gen:
             for obj in next_list:
-                runner = Runner(obj)
-                runner.run()
+                runner = Runner()
+                runner.run(obj)
     elif _parse_result.action == "run":
         run_type = "default"
         if _parse_result.mock:
@@ -257,5 +246,5 @@ if __name__ == "__main__":
         print "interrupted"
         print "="*10
         for service in BACKENDS + WEB_SERVERS:
-            Runner(Task("stop", service, Extra())).run()
+            Runner().run(Task("stop", service, Extra()))
 

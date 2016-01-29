@@ -4,6 +4,7 @@ matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
 from json import dump
+from json import loads
 from os import makedirs
 from os import path
 from subprocess import Popen
@@ -102,7 +103,7 @@ class DegradationCheck:
         self.id_dict[rps] = id
         tmp_x = []
         tmp_y = []
-        full_json = json.loads(json_data)[0]
+        full_json = loads(json_data)[0]
         t1 = full_json["result"][0]["timestamp"]
         iter = 0
         for result in full_json["result"]:
