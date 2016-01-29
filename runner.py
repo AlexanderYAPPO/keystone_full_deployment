@@ -202,7 +202,7 @@ def bin_search(cur_config):
         for obj in cur_config:
             if obj.name == "tests":
                 m = int((obj.extra.param1 + obj.extra.param2) / 2)
-                degr = Runner.run(obj, rps)
+                degr = Runner.run(obj, m)
                 if degr:
                     obj.extra.param2 = m
                 else:
