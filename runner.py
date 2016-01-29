@@ -97,29 +97,6 @@ class Generator:
         else:
             raise StopIteration()
 
-def run_playbook(name, **kwargs):
-    utils.VERBOSITY = 0
-    playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-    stats = callbacks.AggregateStats()
-    runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
-                                                  verbose=utils.VERBOSITY)
-    ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
-    pb = PlayBook(
-        playbook='%s/%s.yml' % (ansible_dir, name),
-        host_list="%s/hosts" % ansible_dir,
-        remote_user=_user,
-        callbacks=playbook_cb,
-        runner_callbacks=runner_cb,
-        stats=stats,
-        private_key_file='/home/%s/.ssh/id_rsa' % _user,
-        become=True,
-        become_pass="%s\n" % _password,
-        become_method='sudo',
-        extra_vars=kwargs
-    )
-    results = pb.run()
-    playbook_cb.on_stats(pb.stats)
-    return results
 
 class Runner:
     @staticmethod
@@ -129,18 +106,18 @@ class Runner:
         extra = task.extra
         if action == "mount" or action == "umount":
             hardware_type = "tmpfs" if name == "tmpfs" else "ext4"
-            run_playbook("%s_%s" % (action, extra.database),
+            Runner.run_playbook("%s_%s" % (action, extra.database),
                 hardware_src="name",
                 hardware_type="hardware_type"
                 )
         elif action == "stop" or action == "install":
-            run_playbook("%s_%s" % (action, name))
+            Runner.run_playbook("%s_%s" % (action, name))
         elif action == "run":
             if name in WEB_SERVERS:
-                run_playbook("%s_%s" % (action, name), 
+                Runner.run_playbook("%s_%s" % (action, name), 
                                     global_database=extra.database)
             else:
-                run_playbook("%s_%s" % (action, name))
+                Runner.run_playbook("%s_%s" % (action, name))
         elif action == "func":
             if name == "tests":
                 d = DegradationCheck(extra.hardware, extra.database,
@@ -151,6 +128,31 @@ class Runner:
                                      extra.web_server, _user)
                 d.is_degradation(rps)
                 d.save_results(rps)
+                
+    @staticmethod
+    def run_playbook(name, **kwargs):
+        utils.VERBOSITY = 0
+        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
+        stats = callbacks.AggregateStats()
+        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
+                                                      verbose=utils.VERBOSITY)
+        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
+        pb = PlayBook(
+            playbook='%s/%s.yml' % (ansible_dir, name),
+            host_list="%s/hosts" % ansible_dir,
+            remote_user=_user,
+            callbacks=playbook_cb,
+            runner_callbacks=runner_cb,
+            stats=stats,
+            private_key_file='/home/%s/.ssh/id_rsa' % _user,
+            become=True,
+            become_pass="%s\n" % _password,
+            become_method='sudo',
+            extra_vars=kwargs
+        )
+        results = pb.run()
+        playbook_cb.on_stats(pb.stats)
+        return results
 
 
 def arg_parser():
@@ -205,7 +207,7 @@ def bin_search(cur_config):
                     obj.extra.param2 = m
                 else:
                     obj.extra.param1 = m
-                if obj.extra.param2 == obj.extra.param1 + 1:
+                if obj.extra.param2 <= obj.extra.param1 + 1:
                     result = obj.extra.param1
             else:
                 Runner.run(obj)
