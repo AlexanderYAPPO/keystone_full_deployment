@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
-import json
-import os
 import matplotlib
-import getpass
 matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
-from subprocess import Popen, PIPE, check_output
+from json import dump
+from os import makedirs
+from os import path
+from subprocess import Popen
+from subprocess import PIPE
+from subprocess import check_output
+
 
 THRESHOLD = 0.01
 TIMES = 120
 DEP_NAME = "existing"
-
 
 
 class DegradationCheck:
@@ -25,9 +27,9 @@ class DegradationCheck:
                                                     web_server
                                                     )
 
-    def create_dir(self, path):
-        if not os.path.exists(path):
-            os.makedirs(path)
+    def create_dir(self, resultsdir_path):
+        if not path.exists(resultsdir_path):
+            makedirs(path)
 
     def lin_regress(self, tmp_x, tmp_y):
         if not len(tmp_x) or not len(tmp_y):
@@ -57,7 +59,7 @@ class DegradationCheck:
             "runner": runner
             }]}
         with open(self.home_dir + "/nfind.json", 'wb') as outfile:
-            json.dump(task_dict, outfile)
+            dump(task_dict, outfile)
 
     def get_results(self, rps):
         self.update_rps(rps)  # rps changing

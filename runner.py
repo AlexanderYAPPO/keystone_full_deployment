@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-import os
-import getpass
-import argparse
-from sys import argv
+from argparse import ArgumentParser
 from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
@@ -164,7 +161,7 @@ class Runner:
 
 
 def arg_parser():
-    parser = argparse.ArgumentParser(
+    parser = ArgumentParser(
         prog = 'runner',
         description = '''This program can start rally tests.''',
         add_help = True
