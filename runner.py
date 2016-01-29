@@ -111,34 +111,34 @@ class Runner:
         action = task.action
         name = task.name
         extra = task.extra
-        params = {}
         if action == "mount" or action == "umount":
             hardware_type = "tmpfs" if name == "tmpfs" else "ext4"
-            params = {
-                "hardware_src": name,
-                "hardware_type": hardware_type
-                }
-            self.run_playbook("%s_%s" % (action, extra.database), params)
+            self.run_playbook("%s_%s" % (action, extra.database),
+                hardware_src="name",
+                hardware_type="hardware_type"
+                )
         elif action == "stop" or action == "install":
-            self.run_playbook("%s_%s" % (action, name), params)
+            self.run_playbook("%s_%s" % (action, name))
         elif action == "run":
             if name in WEB_SERVERS:
-                params = {"global_database": extra.database}
-            self.run_playbook("%s_%s" % (action, name), params)
+                self.run_playbook("%s_%s" % (action, name), 
+                                    global_database=extra.database)
+            else:
+                self.run_playbook("%s_%s" % (action, name))
         elif action == "func":
             if name == "tests":
                 rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
-                                     extra.web_server)
+                                     extra.web_server, _user)
                 return d.is_degradation(self.rps)
             elif name == "save":
                 rps = self.rps
                 d = DegradationCheck(extra.hardware, extra.database,
-                                     extra.web_server)
+                                     extra.web_server, _user)
                 d.is_degradation(self.rps)
                 d.save_results(self.rps)
 
-    def run_playbook(self, name, params):
+    def run_playbook(self, name, **kwargs):
         utils.VERBOSITY = 0
         playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
         stats = callbacks.AggregateStats()
@@ -156,7 +156,7 @@ class Runner:
             become=True,
             become_pass="%s\n" % _password,
             become_method='sudo',
-            extra_vars=params
+            extra_vars=kwargs
         )
         results = pb.run()
         playbook_cb.on_stats(pb.stats)
@@ -165,28 +165,34 @@ class Runner:
 
 def arg_parser():
     parser = argparse.ArgumentParser(
-        prog='runner',
-        description='''This program can start rally tests.''',
-        add_help=True
+        prog = 'runner',
+        description = '''This program can start rally tests.''',
+        add_help = True
         )
-    parser.add_argument(
-        '--mock',
-        action='store_true',
-        default=False,
-        help='mock flag'
+    parser.add_argument ('--user',
+        "-u",
+        action="store",
+        default="",
+        help="sudo user",
+        required=True
         )
-    sub = parser.add_subparsers(
-        dest='action',
-        title='mode'
+    parser.add_argument ('--password',
+        "-p", 
+        action="store",
+        default="",
+        help="sudo password",
+        required=True
         )
-    install_parser = sub.add_parser(
-        'install',
-        help='install mode'
+    sub = parser.add_subparsers (dest = 'action',
+        title = 'mode'
         )
-    run_parser = sub.add_parser(
-        'run',
-        help='run mode'
-        )
+    install_parser = sub.add_parser ('install',
+        help = 'install mode')
+    run_parser = sub.add_parser ('run',
+        help = 'run mode')
+    run_parser.add_argument ('--mock', action='store_true',
+        default = False,
+        help = 'mock flag')
     return parser
 
 
@@ -228,7 +234,7 @@ def main():
             for obj in next_list:
                 runner = Runner(obj)
                 runner.run()
-    else:
+    elif _parse_result.action == "run":
         run_type = "default"
         if _parse_result.mock:
             run_type = "mock"
@@ -244,8 +250,9 @@ def main():
 if __name__ == "__main__":
     _parser = arg_parser()
     _parse_result = _parser.parse_args()
-    _user = getpass.getuser()  # current _user's username
-    _password = getpass.getpass()  # sudo pasword
+    _user = _parse_result.user
+    _password = _parse_result.password
+    print _user, _password
     try:
         main()
     except KeyboardInterrupt:
