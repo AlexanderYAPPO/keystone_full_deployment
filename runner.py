@@ -193,7 +193,7 @@ def save_func(n, cur_config):
         for obj in cur_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra))
-            Runner.run(Task("func", "save", obj.extra))
+            Runner.run(obj)
 
 
 def bin_search(cur_config):
