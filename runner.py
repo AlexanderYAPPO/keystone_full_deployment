@@ -190,10 +190,9 @@ def arg_parser():
     return parser
 
 
-def save_func(n, cur_list):
-    save_list = cur_list
+def save_func(n, cur_config):
     for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
-        for obj in save_list:
+        for obj in cur_config:
             runner = Runner(obj)
             if obj.name == "tests":
                 runner = Runner(Task("func", "save", obj.extra))
@@ -201,10 +200,10 @@ def save_func(n, cur_list):
             runner.run()
 
 
-def bin_search(cur_list):
+def bin_search(cur_config):
     result = 0
     while not result:
-        for obj in cur_list:
+        for obj in cur_config:
             runner = Runner(obj)
             if obj.name != "tests":
                 runner.run()
