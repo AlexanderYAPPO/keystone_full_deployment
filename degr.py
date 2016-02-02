@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
+from getpass import getuser
 from json import dump
 from json import loads
 from os import makedirs
@@ -18,8 +19,9 @@ DEP_NAME = "existing"
 
 
 class DegradationCheck:
-    def __init__(self, hardware, database, web_server, user):
+    def __init__(self, hardware, database, web_server):
         self.id_dict = {}  # {rps : id}
+        user = getuser()
         self.home_dir = "/home/%s" % user
         self.rally_path = "%s/rally/bin/rally" % self.home_dir
         self.results_dir = "%s/results/%s/%s/%s" % (self.home_dir,
@@ -30,7 +32,7 @@ class DegradationCheck:
 
     def create_dir(self, resultsdir_path):
         if not path.exists(resultsdir_path):
-            makedirs(path)
+            makedirs(resultsdir_path)
 
     def lin_regress(self, tmp_x, tmp_y):
         if not len(tmp_x) or not len(tmp_y):
@@ -38,6 +40,9 @@ class DegradationCheck:
         x_arr = array(tmp_x)
         y_arr = array(tmp_y)
         a = stats.linregress(x_arr, y_arr)[0]  # getting slope
+        print "="*10
+        print "a=", a
+        print "="*10
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
             f.write("a= %s\n" % (a))
         if a > THRESHOLD:
@@ -52,9 +57,12 @@ class DegradationCheck:
         context["tenants"] = 1
         context["user_domain"] = "default"
         context["users_per_tenant"] = 1
+        runner["type"] = "rps"
         runner["rps"] = int(rps)
         runner["times"] = int(rps * TIMES)
         runner["type"] = "rps"
+        runner["max_cpu_count"] = 3
+        runner["max_concurrency"] = 3
         task_dict = {"Authenticate.keystone": [{
             "context": {"users": context},
             "runner": runner
@@ -74,6 +82,9 @@ class DegradationCheck:
                    stdout=PIPE)
         p2.wait()
         txt = p2.communicate()[0].decode("utf-8")
+        print "="*10
+        print "rally task results"
+        print "="*10
         if "task results" not in txt:
             return (False, False)
         id = txt.split("rally task results ")[1].replace("\n", "")
@@ -88,7 +99,7 @@ class DegradationCheck:
         json_data = check_output("%s task results %s" % (self.rally_path, id),
                                  shell=True).decode("utf-8")
         with open(self.results_dir + '/%s_j.json' % rps, 'wb') as outfile:
-            json.dump(json_data, outfile)
+            dump(json_data, outfile)
         report_args = (self.rally_path, id, self.results_dir + '/%s_h.html' % rps)
         check_output("%s task report %s --out %s" % report_args, shell=True)
 
@@ -114,6 +125,8 @@ class DegradationCheck:
             else:
                 iter += 1
             if len(result["error"]) != 0:
+                with open(self.results_dir + '/sk_iters.txt', 'a') as f:
+                    f.write("N=%s. Errors.\n" % (rps))
                 return True
                 
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:

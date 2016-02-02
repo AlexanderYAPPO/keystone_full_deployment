@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 from argparse import ArgumentParser
 from ansible.playbook import PlayBook
 from ansible import callbacks
 from ansible import utils
 from degr import DegradationCheck
+from getpass import getuser
 
 WEB_SERVERS = ["apache", "uwsgi"]
 BACKENDS = ["postgresql", "mysql"]  # database type
@@ -37,13 +38,12 @@ class Generator:
         self.gen_list = []
         if act == "install":
             new_list = [
-                Task("install", "tests", Extra()),
                 Task("install", "postgresql", Extra()),
                 Task("install", "mysql", Extra()),
                 Task("install", "keystone", Extra()),
                 Task("install", "apache", Extra()),
                 Task("install", "uwsgi", Extra()),
-                Task("install", "rally", Extra()),
+                #Task("install", "rally", Extra()),
                 Task("install", "mock", Extra())
                 ]
             self.gen_list.append(new_list)
@@ -62,12 +62,12 @@ class Generator:
                                                         hardware,
                                                         web_server,
                                                         1,
-                                                        200
+                                                        1000
                                                         )),
                             Task("stop", web_server, Extra()),
                             Task("stop", database, Extra()),
                             Task("umount", database, Extra(database)),
-                            Task("stop", "rally", Extra())
+                            #Task("stop", "rally", Extra())
                             ]
                         self.gen_list.append(new_list)
 
@@ -77,11 +77,11 @@ class Generator:
                 Task("func", "tests", Extra("flask",
                                             "flask",
                                             "flask",
-                                            500,
-                                            1000
+                                            4675,
+                                            10000,
                                             )),
                 Task("stop", "mock", Extra()),
-                Task("stop", "rally", Extra())
+                #Task("stop", "rally", Extra())
                 ]
             self.gen_list.append(new_list)
         self.n = len(self.gen_list)
@@ -121,11 +121,11 @@ class Runner:
         elif action == "func":
             if name == "tests":
                 d = DegradationCheck(extra.hardware, extra.database,
-                                     extra.web_server, _user)
+                                     extra.web_server)
                 return d.is_degradation(rps)
             elif name == "save":
                 d = DegradationCheck(extra.hardware, extra.database,
-                                     extra.web_server, _user)
+                                     extra.web_server)
                 d.is_degradation(rps)
                 d.save_results(rps)
                 
@@ -136,7 +136,7 @@ class Runner:
         stats = callbacks.AggregateStats()
         runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
                                                       verbose=utils.VERBOSITY)
-        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % _user
+        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
         pb = PlayBook(
             playbook='%s/%s.yml' % (ansible_dir, name),
             host_list="%s/hosts" % ansible_dir,
@@ -144,7 +144,7 @@ class Runner:
             callbacks=playbook_cb,
             runner_callbacks=runner_cb,
             stats=stats,
-            private_key_file='/home/%s/.ssh/id_rsa' % _user,
+            private_key_file='/home/%s/.ssh/id_rsa' % getuser(),
             become=True,
             become_pass="%s\n" % _password,
             become_method='sudo',
@@ -192,8 +192,9 @@ def save_func(n, cur_config):
     for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
         for obj in cur_config:
             if obj.name == "tests":
-                Runner.run(Task("func", "save", obj.extra))
+                Runner.run(Task("func", "save", obj.extra), rps)
             Runner.run(obj)
+            
 
 
 def bin_search(cur_config):
@@ -228,18 +229,21 @@ def main():
             run_type = "mock"
         run_gen = Generator(run_type)
         for next_list in run_gen:
-            n = bin_search(next_list)
+            n = 501#n = bin_search(next_list)
             print "="*10
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
+            return
+            #import sys
+            #sys.exit(1)
 
 
 if __name__ == "__main__":
     _parser = arg_parser()
     _parse_result = _parser.parse_args()
-    _user = _parse_result.user
     _password = _parse_result.password
+    _user = _parse_result.user
     print _user, _password
     try:
         main()
