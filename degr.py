@@ -14,7 +14,7 @@ from subprocess import check_output
 
 
 THRESHOLD = 0.01
-TIMES = 120
+TIMES = 360
 DEP_NAME = "existing"
 
 
@@ -61,8 +61,8 @@ class DegradationCheck:
         runner["rps"] = int(rps)
         runner["times"] = int(rps * TIMES)
         runner["type"] = "rps"
-        runner["max_cpu_count"] = 3
-        runner["max_concurrency"] = 3
+        #runner["max_cpu_count"] = 8
+        #runner["max_concurrency"] = 8
         task_dict = {"Authenticate.keystone": [{
             "context": {"users": context},
             "runner": runner

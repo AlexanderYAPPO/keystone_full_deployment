@@ -9,9 +9,9 @@ from getpass import getuser
 WEB_SERVERS = ["apache", "uwsgi"]
 BACKENDS = ["postgresql", "mysql"]  # database type
 HARDWARE_LIST = (
-    "/dev/sda7",  # HDD
+    "/dev/sdb1",  # SSD
     "tmpfs",  # overlay
-    "/dev/sdb1"  # SSD
+    "/dev/sda7"  # HDD
     )
 
 
@@ -43,7 +43,7 @@ class Generator:
                 Task("install", "keystone", Extra()),
                 Task("install", "apache", Extra()),
                 Task("install", "uwsgi", Extra()),
-                #Task("install", "rally", Extra()),
+                Task("install", "rally", Extra()),
                 Task("install", "mock", Extra())
                 ]
             self.gen_list.append(new_list)
@@ -62,7 +62,7 @@ class Generator:
                                                         hardware,
                                                         web_server,
                                                         1,
-                                                        1000
+                                                        200
                                                         )),
                             Task("stop", web_server, Extra()),
                             Task("stop", database, Extra()),
@@ -77,8 +77,8 @@ class Generator:
                 Task("func", "tests", Extra("flask",
                                             "flask",
                                             "flask",
-                                            4675,
-                                            10000,
+                                            1,
+                                            500,
                                             )),
                 Task("stop", "mock", Extra()),
                 #Task("stop", "rally", Extra())
@@ -105,10 +105,10 @@ class Runner:
         name = task.name
         extra = task.extra
         if action == "mount" or action == "umount":
-            hardware_type = "tmpfs" if name == "tmpfs" else "ext4"
+            f_system = "tmpfs" if name == "tmpfs" else "ext4"
             Runner.run_playbook("%s_%s" % (action, extra.database),
-                hardware_src="name",
-                hardware_type="hardware_type"
+                hardware_src=name,
+                hardware_type=f_system
                 )
         elif action == "stop" or action == "install":
             Runner.run_playbook("%s_%s" % (action, name))
@@ -193,7 +193,8 @@ def save_func(n, cur_config):
         for obj in cur_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), rps)
-            Runner.run(obj)
+            else:
+                Runner.run(obj)
             
 
 
@@ -228,16 +229,21 @@ def main():
         if _parse_result.mock:
             run_type = "mock"
         run_gen = Generator(run_type)
+        next_config = run_gen.next()
+        """
+        n = 750
+        for obj in next_config:
+            if obj.name == "tests":
+                Runner.run(Task("func", "save", obj.extra), n)
+            else:
+                Runner.run(obj)
+        """
         for next_list in run_gen:
-            n = 501#n = bin_search(next_list)
+            n = bin_search(next_list)
             print "="*10
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
-            return
-            #import sys
-            #sys.exit(1)
-
 
 if __name__ == "__main__":
     _parser = arg_parser()
