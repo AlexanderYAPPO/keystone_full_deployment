@@ -1,4 +1,5 @@
 requirements:
+ansible==1.9.3
 
 https://github.com/deimosfr/ansible-mariadb/
 
