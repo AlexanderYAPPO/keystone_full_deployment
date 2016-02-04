@@ -12,6 +12,6 @@ Mariadb didn't start if some are not deleted
 
 ## Usage
 
-Keystone can be deployed and tests can be started by running
-tests_run.py script.
-If you want to run tests without keystone and rally installation you should use --ignore_install argument
+usage: runner [-h] --user USER -password PASSWORD {install, run} [--mock]
+
+--mock if set true the mock will be used instead of keystone
