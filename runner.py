@@ -14,7 +14,6 @@ HARDWARE_LIST = (
     "/dev/sda7"  # HDD
     )
 
-conf_rps = {}  # {configuration : rps}
 
 class Extra():
     def __init__(self, database=None, hardware=None,
@@ -242,7 +241,7 @@ def main():
         run_gen = Generator(run_type)
         """
         next_config = run_gen.next()
-        n = 550
+        n = 525
         for obj in next_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), n)
