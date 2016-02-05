@@ -78,7 +78,7 @@ class Generator:
                                             "flask",
                                             "flask",
                                             1,
-                                            500,
+                                            1200,
                                             )),
                 Task("stop", "mock", Extra()),
                 #Task("stop", "rally", Extra())
@@ -229,8 +229,8 @@ def main():
         if _parse_result.mock:
             run_type = "mock"
         run_gen = Generator(run_type)
-        next_config = run_gen.next()
         """
+        next_config = run_gen.next()
         n = 750
         for obj in next_config:
             if obj.name == "tests":
