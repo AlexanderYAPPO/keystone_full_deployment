@@ -14,6 +14,7 @@ HARDWARE_LIST = (
     "/dev/sda7"  # HDD
     )
 
+conf_rps = {}  # {configuration : rps}
 
 class Extra():
     def __init__(self, database=None, hardware=None,
@@ -114,7 +115,7 @@ class Runner:
             Runner.run_playbook("%s_%s" % (action, name))
         elif action == "run":
             if name in WEB_SERVERS:
-                Runner.run_playbook("%s_%s" % (action, name), 
+                Runner.run_playbook("%s_%s" % (action, name),
                                     global_database=extra.database)
             else:
                 Runner.run_playbook("%s_%s" % (action, name))
@@ -128,7 +129,7 @@ class Runner:
                                      extra.web_server)
                 d.is_degradation(rps)
                 d.save_results(rps)
-                
+
     @staticmethod
     def run_playbook(name, **kwargs):
         utils.VERBOSITY = 0
@@ -169,7 +170,7 @@ def arg_parser():
         required=True
         )
     parser.add_argument ('--password',
-        "-p", 
+        "-p",
         action="store",
         default="",
         help="sudo password",
@@ -188,14 +189,25 @@ def arg_parser():
     return parser
 
 
+def save_n(cnf, n):
+    results_dir = "/home/%s/results/%s/%s/%s" % (
+                                                getuser(),
+                                                cnf.hardware.replace("/", ""),
+                                                cnf.database,
+                                                cnf.web_server
+                                                )
+    with open(self.results_dir + '/N=%s' % rps, 'w') as f:
+        f.write("N=%s\n" % (rps))
+
 def save_func(n, cur_config):
-    for rps in (n - 1, n, n + 1, n + 3, n + 5, 2 * n):
+    for rps in (n, n - 1, n + 1, n + 3, n + 5, 2 * n):
         for obj in cur_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), rps)
+                if rps == n:
+                    save_n(obj.extra, n)
             else:
                 Runner.run(obj)
-            
 
 
 def bin_search(cur_config):
@@ -214,7 +226,7 @@ def bin_search(cur_config):
             else:
                 Runner.run(obj)
     return result
-    
+
 
 
 def main():
@@ -222,8 +234,7 @@ def main():
         install_gen = Generator("install")
         for next_list in install_gen:
             for obj in next_list:
-                runner = Runner()
-                runner.run(obj)
+                Runner.run(obj)
     elif _parse_result.action == "run":
         run_type = "default"
         if _parse_result.mock:
@@ -231,10 +242,11 @@ def main():
         run_gen = Generator(run_type)
         """
         next_config = run_gen.next()
-        n = 750
+        n = 550
         for obj in next_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), n)
+                save_n(obj.extra, n)
             else:
                 Runner.run(obj)
         """
@@ -244,6 +256,7 @@ def main():
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
+
 
 if __name__ == "__main__":
     _parser = arg_parser()

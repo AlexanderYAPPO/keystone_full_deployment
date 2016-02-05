@@ -10,8 +10,8 @@ from os import makedirs
 from os import path
 from subprocess import Popen
 from subprocess import PIPE
+#!/usr/bin/python
 from subprocess import check_output
-
 
 THRESHOLD = 0.01
 TIMES = 360
@@ -98,9 +98,12 @@ class DegradationCheck:
             id = self.id_dict[rps]
         json_data = check_output("%s task results %s" % (self.rally_path, id),
                                  shell=True).decode("utf-8")
-        with open(self.results_dir + '/%s_j.json' % rps, 'wb') as outfile:
+
+        json_fname = self.results_dir + '/%srps.json' % rps
+        html_fname = self.results_dir + '/%srps.html' % rps
+        with open(json_fname, 'wb') as outfile:
             dump(json_data, outfile)
-        report_args = (self.rally_path, id, self.results_dir + '/%s_h.html' % rps)
+        report_args = (self.rally_path, id, html_fname)
         check_output("%s task report %s --out %s" % report_args, shell=True)
 
     def is_degradation(self, rps):
@@ -126,10 +129,10 @@ class DegradationCheck:
                 iter += 1
             if len(result["error"]) != 0:
                 with open(self.results_dir + '/sk_iters.txt', 'a') as f:
-                    f.write("N=%s. Errors.\n" % (rps))
+                    f.write("rps:%s. Errors.\n" % (rps))
                 return True
-                
+
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
-            f.write("N=%s: first %s iterations skipped\n" % (rps, iter))
+            f.write("rps:%s: first %s iterations  skipped\n" % (rps, iter))
         return self.lin_regress(tmp_x, tmp_y)
 
