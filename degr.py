@@ -98,7 +98,6 @@ class DegradationCheck:
             id = self.id_dict[rps]
         json_data = check_output("%s task results %s" % (self.rally_path, id),
                                  shell=True).decode("utf-8")
-
         json_fname = self.results_dir + '/%srps.json' % rps
         html_fname = self.results_dir + '/%srps.html' % rps
         with open(json_fname, 'wb') as outfile:
