@@ -196,7 +196,7 @@ def save_n(cnf, n):
                                                 cnf.database,
                                                 cnf.web_server
                                                 )
-    with open(self.results_dir + '/N=%s' % rps, 'w') as f:
+    with open(results_dir + '/N=%s' % rps, 'w') as f:
         f.write("N=%s\n" % (rps))
 
 def save_func(n, cur_config):
