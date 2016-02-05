@@ -131,7 +131,6 @@ class DegradationCheck:
                 with open(self.results_dir + '/sk_iters.txt', 'a') as f:
                     f.write("rps:%s. Errors.\n" % (rps))
                 return True
-
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
             f.write("rps:%s: first %s iterations  skipped\n" % (rps, iter))
         return self.lin_regress(tmp_x, tmp_y)
