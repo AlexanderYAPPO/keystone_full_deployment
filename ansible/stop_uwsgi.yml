@@ -7,7 +7,7 @@
       service: name=nginx state=stopped
 
     - name: Stop uwsgi
-      shell: "kill -HUP `pidof uwsgi` &> /dev/null"
+      shell: "kill -9 `pidof uwsgi` &> /dev/null"
       sudo: yes
       ignore_errors: yes
 

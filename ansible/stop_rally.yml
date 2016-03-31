@@ -1,10 +1,13 @@
 ---
 
-- hosts: all
+- hosts: localhost
 
-  pre_tasks:
+  tasks:
   - name: rally deployment recreate
     shell: "/home/{{ global_os_user }}/rally/bin/rally-manage db recreate"
+
+  - shell: "chown {{global_os_user}}:{{global_os_user}} /home/{{global_os_user}}/rally -R"
+
   - name: prepare rally
     shell: "/home/{{ global_os_user }}/rally/bin/rally deployment create --fromenv --name=existing"
     environment:

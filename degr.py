@@ -1,6 +1,7 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
-import matplotlib
-matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
+#import matplotlib
+#matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
 from numpy import array
 from scipy import stats
 from getpass import getuser
@@ -10,10 +11,9 @@ from os import makedirs
 from os import path
 from subprocess import Popen
 from subprocess import PIPE
-#!/usr/bin/python
 from subprocess import check_output
 
-THRESHOLD = 0.01
+THRESHOLD = 0.001
 TIMES = 360
 DEP_NAME = "existing"
 
@@ -129,6 +129,10 @@ class DegradationCheck:
             if len(result["error"]) != 0:
                 with open(self.results_dir + '/sk_iters.txt', 'a') as f:
                     f.write("rps:%s. Errors.\n" % (rps))
+                return True
+            if t2 > TIMES + 1:
+                with open(self.results_dir + '/sk_iters.txt', 'a') as f:
+                    f.write("rps:%s. Wrong duration.\n" % (rps))
                 return True
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
             f.write("rps:%s: first %s iterations  skipped\n" % (rps, iter))

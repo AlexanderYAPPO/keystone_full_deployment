@@ -17,7 +17,7 @@
   sudo: yes
 
 - name: clone keystone
-  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
+  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes version='stable/liberty'
 
 - name: install virtualenv
   pip: name=virtualenv

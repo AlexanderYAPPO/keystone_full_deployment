@@ -1,12 +1,17 @@
 #!/usr/bin/python
 from argparse import ArgumentParser
-from ansible.playbook import PlayBook
-from ansible import callbacks
-from ansible import utils
 from degr import DegradationCheck
 from getpass import getuser
+import os
+import sys
+from collections import namedtuple
 
-WEB_SERVERS = ["apache", "uwsgi"]
+from ansible.parsing.dataloader import DataLoader
+from ansible.vars import VariableManager
+from ansible.inventory import Inventory
+from ansible.executor.playbook_executor import PlaybookExecutor
+
+WEB_SERVERS = ["uwsgi", "apache"]
 BACKENDS = ["postgresql", "mysql"]  # database type
 HARDWARE_LIST = (
     "/dev/sdb1",  # SSD
@@ -43,7 +48,7 @@ class Generator:
                 Task("install", "keystone", Extra()),
                 Task("install", "apache", Extra()),
                 Task("install", "uwsgi", Extra()),
-                Task("install", "rally", Extra()),
+                #Task("install", "rally", Extra()),
                 Task("install", "mock", Extra())
                 ]
             self.gen_list.append(new_list)
@@ -53,8 +58,9 @@ class Generator:
                 for web_server in WEB_SERVERS:
                     for hardware in HARDWARE_LIST:
                         new_list = [
-                            #Task("stop", database, Extra()),
-                            #Task("stop", web_server, Extra()),
+                            #Task("stop", "rally", Extra()),
+                            Task("stop", database, Extra()),
+                            Task("stop", web_server, Extra()),
                             Task("mount", hardware, Extra(database)),
                             Task("run", database, Extra(database)),
                             Task("run", web_server, Extra(database)),
@@ -62,12 +68,12 @@ class Generator:
                                                         hardware,
                                                         web_server,
                                                         1,
-                                                        200
+                                                        1000
                                                         )),
                             Task("stop", web_server, Extra()),
                             Task("stop", database, Extra()),
-                            Task("umount", database, Extra(database)),
-                            #Task("stop", "rally", Extra())
+                            Task("umount", database, Extra(database))
+#                           # Task("stop", "rally", Extra())
                             ]
                         self.gen_list.append(new_list)
 
@@ -111,7 +117,12 @@ class Runner:
                 hardware_type=f_system
                 )
         elif action == "stop" or action == "install":
-            Runner.run_playbook("%s_%s" % (action, name))
+            if name == "rally":
+                Runner.run_playbook("%s_%s" % (action, name),
+                                    global_os_user=getuser())
+            else:
+                Runner.run_playbook("%s_%s" % (action, name))
+
         elif action == "run":
             if name in WEB_SERVERS:
                 Runner.run_playbook("%s_%s" % (action, name),
@@ -131,29 +142,25 @@ class Runner:
 
     @staticmethod
     def run_playbook(name, **kwargs):
-        utils.VERBOSITY = 0
-        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        stats = callbacks.AggregateStats()
-        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
-                                                      verbose=utils.VERBOSITY)
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
-        pb = PlayBook(
-            playbook='%s/%s.yml' % (ansible_dir, name),
-            host_list="%s/hosts" % ansible_dir,
-            remote_user=_user,
-            callbacks=playbook_cb,
-            runner_callbacks=runner_cb,
-            stats=stats,
-            private_key_file='/home/%s/.ssh/id_rsa' % getuser(),
-            become=True,
-            become_pass="%s\n" % _password,
-            become_method='sudo',
-            extra_vars=kwargs
-        )
-        results = pb.run()
-        playbook_cb.on_stats(pb.stats)
-        return results
+        variable_manager = VariableManager()
+        loader = DataLoader()
 
+        inventory = Inventory(loader=loader, variable_manager=variable_manager,  host_list="%s/hosts" % ansible_dir)
+        playbook_path = '/home/%s/keystone_full_deployment/ansible/%s.yml' % (getuser(), name)
+
+        if not os.path.exists(playbook_path):
+            print '[INFO] The playbook does not exist'
+            sys.exit()
+
+        Options = namedtuple('Options', ['listtags', 'listtasks', 'listhosts', 'syntax', 'connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check'])
+        options = Options(listtags=False, listtasks=False, listhosts=False, syntax=False, connection='ssh', module_path=None, forks=100, remote_user=_user, private_key_file='/home/%s/.ssh/id_rsa' % getuser(), ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=True, become_method="sudo", become_user="root", verbosity=None, check=False)
+
+        variable_manager.extra_vars = kwargs # This can accomodate various other command line arguments.`
+
+        passwords = dict(vault_pass="%s\n" % _password, sudo_pass="%s\n" % _password, become_pass="%s\n" % _password)
+        pbex = PlaybookExecutor(playbooks=[playbook_path], inventory=inventory, variable_manager=variable_manager, loader=loader, options=options, passwords=passwords)
+        results = pbex.run()
 
 def arg_parser():
     parser = ArgumentParser(
@@ -199,7 +206,7 @@ def save_n(cnf, n):
         f.write("N=%s\n" % (n))
 
 def save_func(n, cur_config):
-    for rps in (n, n - 1, n + 1, n + 3, n + 5, 2 * n):
+    for rps in (n):#for rps in (n, n - 1, n-2, n + 1, n + 3, n + 5, 2 * n):
         for obj in cur_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), rps)
@@ -241,7 +248,7 @@ def main():
         run_gen = Generator(run_type)
         """
         next_config = run_gen.next()
-        n = 525
+        n = 10
         for obj in next_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), n)
@@ -255,8 +262,7 @@ def main():
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
-
-
+        #"""
 if __name__ == "__main__":
     _parser = arg_parser()
     _parse_result = _parser.parse_args()
