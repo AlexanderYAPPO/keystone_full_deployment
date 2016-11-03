@@ -19,4 +19,5 @@ If you want to run tests without keystone and rally installation you should use 
 example:
 
 runner.py -uUSER -pPA\$\$WORD install
+
 runner.py -uUSER -pPA\$\$WORD run
