@@ -14,9 +14,8 @@ from subprocess import PIPE
 from subprocess import check_output
 
 THRESHOLD = 0.001
-TIMES = 360
+TIMES = 90
 DEP_NAME = "existing"
-
 
 class DegradationCheck:
     def __init__(self, hardware, database, web_server):
@@ -96,12 +95,14 @@ class DegradationCheck:
     def save_results(self, rps):
         if rps in self.id_dict:
             id = self.id_dict[rps]
+        #'''
         json_data = check_output("%s task results %s" % (self.rally_path, id),
                                  shell=True).decode("utf-8")
         json_fname = self.results_dir + '/%srps.json' % rps
+        #'''
         html_fname = self.results_dir + '/%srps.html' % rps
-        with open(json_fname, 'wb') as outfile:
-            dump(json_data, outfile)
+        #with open(json_fname, 'wb') as outfile:
+        #    dump(json_data, outfile)
         report_args = (self.rally_path, id, html_fname)
         check_output("%s task report %s --out %s" % report_args, shell=True)
 

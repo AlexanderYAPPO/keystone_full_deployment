@@ -14,8 +14,8 @@
     - python-pip
   sudo: yes
 
-- name: Download Rally installation script
-  get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest=~
+#- name: Download Rally installation script
+#  get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest=~
 
 - name: Install Rally
   shell: 'bash ~/install_rally.sh -v -y --target {{rally_dir}}'

@@ -1,5 +1,8 @@
 #!/usr/bin/python
 from argparse import ArgumentParser
+#from ansible.playbook import PlayBook
+#from ansible import callbacks
+#from ansible import utils
 from degr import DegradationCheck
 from getpass import getuser
 import os
@@ -11,12 +14,12 @@ from ansible.vars import VariableManager
 from ansible.inventory import Inventory
 from ansible.executor.playbook_executor import PlaybookExecutor
 
-WEB_SERVERS = ["uwsgi", "apache"]
-BACKENDS = ["postgresql", "mysql"]  # database type
+WEB_SERVERS = ["uwsgi"] # "apache"
+BACKENDS = ["postgresql"]#, "mysql"]  # database type
 HARDWARE_LIST = (
-    "/dev/sdb1",  # SSD
+    #"/dev/sdb1",  # SSD
     "tmpfs",  # overlay
-    "/dev/sda7"  # HDD
+    #"/dev/sda7"  # HDD
     )
 
 
@@ -139,7 +142,32 @@ class Runner:
                                      extra.web_server)
                 d.is_degradation(rps)
                 d.save_results(rps)
-
+    """
+    @staticmethod
+    def run_playbook(name, **kwargs):
+        utils.VERBOSITY = 0
+        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
+        stats = callbacks.AggregateStats()
+        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
+                                                      verbose=utils.VERBOSITY)
+        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
+        pb = PlayBook(
+            playbook='%s/%s.yml' % (ansible_dir, name),
+            host_list="%s/hosts" % ansible_dir,
+            remote_user=_user,
+            callbacks=playbook_cb,
+            runner_callbacks=runner_cb,
+            stats=stats,
+            private_key_file='/home/%s/.ssh/id_rsa' % getuser(),
+            become=True,
+            become_pass="%s\n" % _password,
+            become_method='sudo',
+            extra_vars=kwargs
+        )
+        results = pb.run()
+        playbook_cb.on_stats(pb.stats)
+        return results
+    """
     @staticmethod
     def run_playbook(name, **kwargs):
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
@@ -246,9 +274,9 @@ def main():
         if _parse_result.mock:
             run_type = "mock"
         run_gen = Generator(run_type)
-        """
+        #"""
         next_config = run_gen.next()
-        n = 10
+        n = 150
         for obj in next_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), n)
@@ -262,7 +290,7 @@ def main():
             print "N = %s" % n
             print "="*10
             save_func(n, next_list)
-        #"""
+        """
 if __name__ == "__main__":
     _parser = arg_parser()
     _parse_result = _parser.parse_args()
