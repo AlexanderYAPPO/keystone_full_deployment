@@ -32,7 +32,13 @@ object LoadTestRunner extends App {
   props.simulationClass("keystone_ltest.AuthenticateKeystoneTest")
   props.resultsDirectory(outPath.toString)
 
-  Gatling.fromMap(props.build)
+  try {
+    Gatling.fromMap(props.build)
+  } catch {
+    case t: Throwable =>
+      log.error("simulation failed", t)
+      System.exit(1)
+  }
 
   log.info("simulation done")
   System.exit(0)

@@ -70,7 +70,7 @@ class AuthKeystoneSetup {
   val tenantId = Json.parseStr[Json.TenantsResp](tenantsResp.getResponseBody).tenant.id
 
   log.info(s"added tenant $tenantName, id=$tenantId")
-  
+
   def addUser = {
     val name = s"c_rally_${rndStr(8)}_${rndStr(8)}"
     val pass = rndStr(34)
