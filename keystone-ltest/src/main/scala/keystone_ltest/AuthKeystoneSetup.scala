@@ -4,8 +4,10 @@ import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
 import org.asynchttpclient.DefaultAsyncHttpClient
+import org.slf4j.LoggerFactory
 
 class AuthKeystoneSetup {
+  val log = LoggerFactory.getLogger(this.getClass)
   val httpClient = new DefaultAsyncHttpClient
 
   import TestConfig._
@@ -67,6 +69,8 @@ class AuthKeystoneSetup {
   assert(tenantsResp.getStatusCode == 200)
   val tenantId = Json.parseStr[Json.TenantsResp](tenantsResp.getResponseBody).tenant.id
 
+  log.info(s"added tenant $tenantName, id=$tenantId")
+  
   def addUser = {
     val name = s"c_rally_${rndStr(8)}_${rndStr(8)}"
     val pass = rndStr(34)
@@ -92,6 +96,8 @@ class AuthKeystoneSetup {
     assert(res.name == name)
     assert(res.username == name)
 
+    log.info(s"added user $name in tenant $tenantId")
+
     User(name, pass, res.id)
   }
 
@@ -112,6 +118,7 @@ class AuthKeystoneSetup {
       .setHeader("X-Auth-Token", authToken)
       .execute().get()
     assert(resp.getStatusCode == 200)
+    log.info(s"removed user ${user.name}, id=${user.id}")
   }
 
   def cleanup(): Unit = {
@@ -121,6 +128,7 @@ class AuthKeystoneSetup {
       .setHeader("X-Auth-Token", authToken)
       .execute().get()
     assert(resp.getStatusCode == 200)
+    log.info(s"removed tenant $tenantId")
   }
 }
 

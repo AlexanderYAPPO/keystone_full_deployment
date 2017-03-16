@@ -22,6 +22,9 @@ object LoadTestRunner extends App {
   }
 
   val logAppender = LogUtils.addAppender(new File(outPath, "log.txt").toString)
+  sys.addShutdownHook {
+    logAppender.stop()
+  }
 
   log.info("starting simulation")
 
@@ -32,6 +35,5 @@ object LoadTestRunner extends App {
   Gatling.fromMap(props.build)
 
   log.info("simulation done")
-  logAppender.stop()
   System.exit(0)
 }
