@@ -80,7 +80,7 @@ class BSearchImpl(opts: BSearchCliOptions) {
          |         "context":{
          |            "users":{
          |               "project_domain":"default",
-         |               "users_per_tenant":3,
+         |               "users_per_tenant":${opts.userCount},
          |               "user_domain":"default",
          |               "tenants":1,
          |               "resource_management_workers":1

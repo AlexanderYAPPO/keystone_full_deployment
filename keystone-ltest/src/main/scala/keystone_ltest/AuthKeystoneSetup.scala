@@ -101,9 +101,7 @@ class AuthKeystoneSetup {
     User(name, pass, res.id)
   }
 
-  val nUsers = 3
-
-  val users = (1 to nUsers).map(_ => addUser).toArray
+  val users = (1 to TestConfig.users).map(_ => addUser).toArray
 
   def randomUser() = {
     users(ThreadLocalRandom.current().nextInt(users.length))
