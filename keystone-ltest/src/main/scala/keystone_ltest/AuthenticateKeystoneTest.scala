@@ -28,14 +28,14 @@ class AuthenticateKeystoneTest extends Simulation {
       val duration = TestConfig.authConf.runner.times.get.toDouble / rps
 
       val injSetup = constantUsersPerSec(rps) during(duration seconds)
-      setUp(scn.inject(injSetup).protocols(httpConf))
+      setUp(scn.inject(injSetup).protocols(httpConf)).maxDuration(duration * 1.2 seconds)
     case "rpsSteps" =>
       val rps = TestConfig.authConf.runner.rps
       val stepDuration = TestConfig.authConf.runner.step_duration.get
       val steps = TestConfig.authConf.runner.steps.get
 
       val injSetup = (1 to steps).map(x => constantUsersPerSec(x.toDouble/steps * rps) during (stepDuration seconds))
-      setUp(scn.inject(injSetup).protocols(httpConf)).maxDuration(stepDuration * steps * 2 seconds)
+      setUp(scn.inject(injSetup).protocols(httpConf)).maxDuration(stepDuration * steps * 1.2 seconds)
   }
   
   before {
