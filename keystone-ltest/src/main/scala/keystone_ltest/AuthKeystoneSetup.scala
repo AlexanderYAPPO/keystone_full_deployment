@@ -3,8 +3,10 @@ package keystone_ltest
 import java.util.Random
 import java.util.concurrent.ThreadLocalRandom
 
-import org.asynchttpclient.DefaultAsyncHttpClient
+import org.asynchttpclient.{Response, DefaultAsyncHttpClient}
 import org.slf4j.LoggerFactory
+
+import scala.util.Try
 
 class AuthKeystoneSetup {
   val log = LoggerFactory.getLogger(this.getClass)
@@ -111,38 +113,65 @@ class AuthKeystoneSetup {
     tokensJson(tenantName, user.name, user.password)
   }
 
-  def deleteUser(user: User, tries: Int = 3): Unit = {
+  trait RequestFactory {
+    def newResp: org.asynchttpclient.Response
+    def doneMsg: String
+    def badStatusMsg(resp: org.asynchttpclient.Response): String
+    def reqFailedMsg: String
+    def allTriesFailedMsg: String
+  }
+
+  def reqWithRetry(rf: RequestFactory, tries: Int): Unit = {
     var triesLeft = tries
     while (triesLeft > 0) {
       triesLeft -= 1
-      val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/users/" + user.id)
-        .setHeader("X-Auth-Token", authToken)
-        .execute().get()
-      if (resp.getStatusCode != 200) {
-        log.warn(s"delete user request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}")
+      val resp = Try(rf.newResp)
+      if (resp.isFailure || resp.get.getStatusCode != 200) {
+        if (resp.isFailure) {
+          log.warn(rf.reqFailedMsg, resp.failed.get)
+        } else {
+          log.warn(rf.badStatusMsg(resp.get))
+        }
       } else {
-        log.info(s"removed user ${user.name}, id=${user.id}")
+        log.info(rf.doneMsg)
         return
       }
     }
-    log.warn(s"failed to delete user ${user.name}, id=${user.id}")
+    log.warn(rf.allTriesFailedMsg)
+  }
+
+  def deleteUser(user: User, tries: Int = 3): Unit = {
+    reqWithRetry(new RequestFactory {
+      override def newResp: Response = {
+        httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/users/" + user.id)
+          .setHeader("X-Auth-Token", authToken)
+          .execute().get()
+      }
+
+      override def doneMsg: String = s"removed user ${user.name}, id=${user.id}"
+      override def badStatusMsg(resp: Response): String = {
+        s"delete user request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}"
+      }
+      override def reqFailedMsg: String = "delete user request failed"
+      override def allTriesFailedMsg: String = s"failed to delete user ${user.name}, id=${user.id}"
+    }, tries)
   }
 
   def deleteTenant(tries: Int = 3): Unit = {
-    var triesLeft = tries
-    while (triesLeft > 0) {
-      triesLeft -= 1
-      val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/tenants/" + tenantId)
-        .setHeader("X-Auth-Token", authToken)
-        .execute().get()
-      if (resp.getStatusCode != 200) {
-        log.warn(s"delete tenant request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}")
-      } else {
-        log.info(s"removed tenant $tenantId")
-        return
+    reqWithRetry(new RequestFactory {
+      override def newResp: Response = {
+        httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/tenants/" + tenantId)
+          .setHeader("X-Auth-Token", authToken)
+          .execute().get()
       }
-    }
-    log.warn(s"failed to remove tenant $tenantId")
+
+      override def doneMsg: String = s"removed tenant $tenantId"
+      override def badStatusMsg(resp: Response): String = {
+        s"delete tenant request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}"
+      }
+      override def reqFailedMsg: String = "delete tenant request failed"
+      override def allTriesFailedMsg: String = s"failed to remove tenant $tenantId"
+    }, tries)
   }
 
   def cleanup(): Unit = {
