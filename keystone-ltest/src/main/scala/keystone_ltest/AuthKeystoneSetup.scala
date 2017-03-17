@@ -113,22 +113,44 @@ class AuthKeystoneSetup {
     tokensJson(tenantName, user.name, user.password)
   }
 
-  def deleteUser(user: User): Unit = {
-    val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/users/" + user.id)
-      .setHeader("X-Auth-Token", authToken)
-      .execute().get()
-    assert(resp.getStatusCode == 200)
-    log.info(s"removed user ${user.name}, id=${user.id}")
+  def deleteUser(user: User, tries: Int = 3): Unit = {
+    var triesLeft = tries
+    while (triesLeft > 0) {
+      triesLeft -= 1
+      val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/users/" + user.id)
+        .setHeader("X-Auth-Token", authToken)
+        .execute().get()
+      if (resp.getStatusCode != 200) {
+        log.warn(s"delete user request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}")
+      } else {
+        log.info(s"removed user ${user.name}, id=${user.id}")
+        return
+      }
+    }
+    log.warn(s"failed to delete user ${user.name}, id=${user.id}")
+  }
+
+  def deleteTenant(tries: Int = 3): Unit = {
+    var triesLeft = tries
+    while (triesLeft > 0) {
+      triesLeft -= 1
+      val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/tenants/" + tenantId)
+        .setHeader("X-Auth-Token", authToken)
+        .execute().get()
+      if (resp.getStatusCode != 200) {
+        log.warn(s"delete tenant request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}")
+      } else {
+        log.info(s"removed tenant $tenantId")
+        return
+      }
+    }
+    log.warn(s"failed to remove tenant $tenantId")
   }
 
   def cleanup(): Unit = {
-    users.foreach(deleteUser _)
+    users.foreach(deleteUser(_))
 
-    val resp = httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/tenants/" + tenantId)
-      .setHeader("X-Auth-Token", authToken)
-      .execute().get()
-    assert(resp.getStatusCode == 200)
-    log.info(s"removed tenant $tenantId")
+    deleteTenant()
   }
 }
 
