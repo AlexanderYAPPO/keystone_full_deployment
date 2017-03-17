@@ -149,5 +149,5 @@ object Json {
   case class TenantObj(name: String, id: String)
 
   case class UsersResp(user: UserObj)
-  case class UserObj(id: String, tenantID: String, enabled: Boolean, name: String, username: String)
+  case class UserObj(id: String, enabled: Boolean, name: String, username: String)
 }
