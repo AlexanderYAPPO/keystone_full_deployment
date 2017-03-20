@@ -4,7 +4,7 @@ import java.io.File
 
 case class BSearchCliOptions(
                             minRps: Int = 10,
-                            maxRps: Int = 100,
+                            maxRps: Int = 0,
                             duration: Int = 10, //use int for this and rps so that rps*duration is also an int
                             userCount: Int = 3,
                             outDir: File = new File("results", s"bsearch-${System.currentTimeMillis()}"),

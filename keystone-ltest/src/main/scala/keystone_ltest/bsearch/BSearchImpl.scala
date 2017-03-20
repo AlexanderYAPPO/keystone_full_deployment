@@ -122,6 +122,15 @@ class BSearchImpl(opts: BSearchCliOptions) {
       return
     }
 
+    if (r == 0) {
+      r = l*2
+      while (test(r)) {
+        l = r
+        r = l * 2
+      }
+      r -= 1
+    }
+
     while (l < r) {
       val m = (l+r+1) / 2
       if (test(m)) {
