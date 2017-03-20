@@ -54,7 +54,7 @@ class BSearchImpl(opts: BSearchCliOptions) {
       l = r.readLine()
     }
 
-    stats.ok(rps)
+    stats.check(rps)
   }
 
   def test(rps: Int): Boolean = {

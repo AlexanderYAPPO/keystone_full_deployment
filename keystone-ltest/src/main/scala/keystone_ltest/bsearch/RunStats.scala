@@ -26,13 +26,30 @@ class RunStats {
 
   val log = LoggerFactory.getLogger(getClass)
 
-  def ok(targetRps: Double) = {
+  def fmt(v: Double) = {
+    val targetL = 5
+    val s1 = "%.1f".format(v)
+    if (s1.length >= targetL)
+      s1
+    else {
+      val dp = 1 + targetL - s1.length
+      val s2 = s"%.${dp}f".format(v)
+      var trimTo = s2.length - 1
+      while (trimTo > 1 && s2(trimTo-1) != '.' && s2(trimTo) == '0') {
+        trimTo -= 1
+      }
+      s2.substring(0, trimTo+1)
+    }
+  }
+
+  def check(targetRps: Double) = {
     val stats = statsBldr.result()
-    val rps = (stats.len*1000.0)/(maxEnd.toDouble - minStart.toDouble)
+    val ok = stats.len - ko
+    val rps = (ok*1000.0)/(maxEnd.toDouble - minStart.toDouble)
 
-    val result = ko == 0 && rps >= targetRps*0.9 && stats.med < 1000
-
-    log.info(s"rps=$rps, response med(ms): ${stats.med}, ok=${stats.len-ko}/${stats.len}, passed=$result")
+    val result = rps >= targetRps*0.95
+    
+    log.info(s"rps=${fmt(rps)} (${fmt(100.0*rps/targetRps)}%), response med(ms): ${stats.med}, ok=$ok/${stats.len} (${fmt(100.0*ok/stats.len)}%), passed=$result")
 
     result
   }
