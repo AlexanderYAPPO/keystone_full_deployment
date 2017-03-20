@@ -132,6 +132,8 @@ class AuthKeystoneSetup {
     }
     def reqFailedMsg: String = s"$name request failed"
     def allTriesFailedMsg: String = s"$name failed"
+
+    def retryWait: Int = 30
   }
 
   def reqWithRetry(rf: RequestFactory, tries: Int = 3): Try[org.asynchttpclient.Response] = {
@@ -151,6 +153,10 @@ class AuthKeystoneSetup {
       } else {
         log.info(rf.doneMsg)
         return resp
+      }
+      if (triesLeft > 0 && rf.retryWait > 0) {
+        log.info(s"waiting ${rf.retryWait}s")
+        Thread.sleep(rf.retryWait * 1000)
       }
     }
     log.warn(rf.allTriesFailedMsg)
