@@ -94,7 +94,18 @@ class BSearchImpl(opts: BSearchCliOptions) {
 
     import sys.process._
     val rc = Process(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir).!
-    assert(rc == 0)
+
+    if (rc != 0) {
+      var errFile = new File(testResPath, "err.txt")
+      val ex = if (errFile.exists()) {
+        val err = scala.io.Source.fromFile(errFile).getLines().take(1).mkString("")
+        new Exception(s"simulation failed with rc=$rc, error text: $err")
+      } else {
+        new Exception(s"simulation failed with rc=$rc")
+      }
+      log.error("test failed", ex)
+      throw ex
+    }
 
     check(testResPath, rps)
   }

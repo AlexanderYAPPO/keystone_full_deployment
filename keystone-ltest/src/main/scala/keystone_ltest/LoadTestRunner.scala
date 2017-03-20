@@ -1,6 +1,7 @@
 package keystone_ltest
 
-import java.io.File
+import java.io.{PrintWriter, File}
+import java.nio.file.{Paths, Files}
 
 import io.gatling.app.Gatling
 import io.gatling.core.config.GatlingPropertiesBuilder
@@ -37,6 +38,9 @@ object LoadTestRunner extends App {
   } catch {
     case t: Throwable =>
       log.error("simulation failed", t)
+      val pw = new PrintWriter(Files.newBufferedWriter(Paths.get(outPath.getPath, "err.txt")))
+      t.printStackTrace(pw)
+      pw.close()
       System.exit(1)
   }
 
