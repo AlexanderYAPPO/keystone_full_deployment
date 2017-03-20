@@ -8,6 +8,9 @@ class BSearchImpl(opts: BSearchCliOptions) {
   val log = LoggerFactory.getLogger(getClass)
 
   var runInd = 0
+  var round = 0
+
+  val csvResults = new CsvResultsFile(new File(opts.outDir, "res.csv"))
 
   def findSim(testResPath: File) = {
     val files = testResPath.listFiles(new FileFilter {
@@ -22,7 +25,7 @@ class BSearchImpl(opts: BSearchCliOptions) {
     new File(files(0), "simulation.log")
   }
 
-  def check(testResPath: File, rps: Int): Boolean = {
+  def check(testResPath: File, rps: Int): (Boolean, Map[String, String]) = {
     val r = java.nio.file.Files.newBufferedReader(findSim(testResPath).toPath)
 
     val stats = new RunStats
@@ -61,7 +64,7 @@ class BSearchImpl(opts: BSearchCliOptions) {
     runInd += 1
     val testId = f"$runInd%03d-$rps"
 
-    log.info(s"$testId: testing rps=$rps")
+    log.info(s"$testId: testing rps=$rps, duration=${opts.duration}s")
 
     val testResPath = new java.io.File(opts.outDir, testId)
     testResPath.mkdirs
@@ -93,7 +96,10 @@ class BSearchImpl(opts: BSearchCliOptions) {
     pw.close()
 
     import sys.process._
+    val startTm = System.nanoTime()
     val rc = Process(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir).!
+    val simTime = (System.nanoTime() - startTm)/1e9
+    log.info(s"simulation took $simTime seconds")
 
     if (rc != 0) {
       var errFile = new File(testResPath, "err.txt")
@@ -107,7 +113,17 @@ class BSearchImpl(opts: BSearchCliOptions) {
       throw ex
     }
 
-    check(testResPath, rps)
+    val (passed, rMap) = check(testResPath, rps)
+
+    csvResults.addResult(rMap ++ Map(
+      "targetRps" -> rps.toString,
+      "simRuntime" -> simTime.toString,
+      "simInd" -> runInd.toString,
+      "simDuration" -> opts.duration.toString,
+      "round" -> round.toString
+    ))
+
+    passed
   }
 
   def bsearch(): Unit = {
@@ -144,6 +160,11 @@ class BSearchImpl(opts: BSearchCliOptions) {
 
   def run(): Unit = {
     log.info("starting bsearch")
-    bsearch()
+    while (round < opts.rounds) {
+      round += 1
+      log.info(s"round $round")
+      bsearch()
+    }
+    csvResults.close()
   }
 }

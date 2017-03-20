@@ -51,7 +51,19 @@ class RunStats {
     
     log.info(s"rps=${fmt(rps)} (${fmt(100.0*rps/targetRps)}%), response med(ms): ${stats.med}, ok=$ok/${stats.len} (${fmt(100.0*ok/stats.len)}%), passed=$result")
 
-    result
+    def cc2map(p: Product, pref: String) = {
+      val values = p.productIterator
+      p.getClass.getDeclaredFields.map(f => pref + f.getName -> values.next.toString).toMap
+    }
+
+    val resultsMap = Map(
+      "rps" -> rps.toString,
+      "passed" -> result.toString,
+      "reqsOk" -> ok.toString,
+      "reqsKo" -> ko.toString
+    ) ++ cc2map(stats, "resptime.")
+
+    (result, resultsMap)
   }
 }
 
