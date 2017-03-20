@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom
 import org.asynchttpclient.{Response, DefaultAsyncHttpClient}
 import org.slf4j.LoggerFactory
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class AuthKeystoneSetup {
   val log = LoggerFactory.getLogger(this.getClass)
@@ -28,10 +28,13 @@ class AuthKeystoneSetup {
        |
      """.stripMargin
 
-  val tokensResp = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tokens")
-    .setBody(tokensJson(OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD))
-    .setHeader("Content-Type", "application/json")
-    .execute().get()
+  val tokensResp = reqWithRetry(new RequestFactory {
+    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tokens")
+      .setBody(tokensJson(OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD))
+      .setHeader("Content-Type", "application/json")
+      .execute().get()
+    override def name: String = "get auth token"
+  }).get
   assert(tokensResp.getStatusCode == 200)
   val tokens = Json.parseStr[Json.TokensResp](tokensResp.getResponseBody)
   val authToken = tokens.access.token.id
@@ -63,11 +66,14 @@ class AuthKeystoneSetup {
 
   val tenantName = s"c_rally_${rndStr(8)}_${rndStr(8)}"
 
-  val tenantsResp = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tenants")
-    .setBody(tenantsJson(tenantName))
-    .addHeader("Content-Type", "application/json")
-    .addHeader("X-Auth-Token", authToken)
-    .execute().get()
+  val tenantsResp = reqWithRetry(new RequestFactory {
+    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tenants")
+      .setBody(tenantsJson(tenantName))
+      .addHeader("Content-Type", "application/json")
+      .addHeader("X-Auth-Token", authToken)
+      .execute().get()
+    override def name: String = "create tenant"
+  }).get
   assert(tenantsResp.getStatusCode == 200)
   val tenantId = Json.parseStr[Json.TenantsResp](tenantsResp.getResponseBody).tenant.id
 
@@ -88,11 +94,15 @@ class AuthKeystoneSetup {
          |   }
          |}
        """.stripMargin
-    val resp = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/users")
-      .setBody(req)
-      .setHeader("Content-Type", "application/json")
-      .setHeader("X-Auth-Token", authToken)
-      .execute().get()
+    val resp = reqWithRetry(new RequestFactory {
+      override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/users")
+        .setBody(req)
+        .setHeader("Content-Type", "application/json")
+        .setHeader("X-Auth-Token", authToken)
+        .execute().get()
+
+      override def name: String = "create user"
+    }).get
     assert(resp.getStatusCode == 200)
     val res = Json.parseStr[Json.UsersResp](resp.getResponseBody).user
     assert(res.name == name)
@@ -115,29 +125,36 @@ class AuthKeystoneSetup {
 
   trait RequestFactory {
     def newResp: org.asynchttpclient.Response
-    def doneMsg: String
-    def badStatusMsg(resp: org.asynchttpclient.Response): String
-    def reqFailedMsg: String
-    def allTriesFailedMsg: String
+    def name: String = ???
+    def doneMsg: String = s"$name done"
+    def badStatusMsg(resp: org.asynchttpclient.Response): String = {
+      s"$reqFailedMsg, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}"
+    }
+    def reqFailedMsg: String = s"$name request failed"
+    def allTriesFailedMsg: String = s"$name failed"
   }
 
-  def reqWithRetry(rf: RequestFactory, tries: Int): Unit = {
+  def reqWithRetry(rf: RequestFactory, tries: Int = 3): Try[org.asynchttpclient.Response] = {
     var triesLeft = tries
+    var lastFail: Throwable = null
     while (triesLeft > 0) {
       triesLeft -= 1
       val resp = Try(rf.newResp)
       if (resp.isFailure || resp.get.getStatusCode != 200) {
         if (resp.isFailure) {
           log.warn(rf.reqFailedMsg, resp.failed.get)
+          lastFail = new Exception(rf.reqFailedMsg, resp.failed.get)
         } else {
           log.warn(rf.badStatusMsg(resp.get))
+          lastFail = new Exception(rf.badStatusMsg(resp.get))
         }
       } else {
         log.info(rf.doneMsg)
-        return
+        return resp
       }
     }
     log.warn(rf.allTriesFailedMsg)
+    Failure(lastFail)
   }
 
   def deleteUser(user: User, tries: Int = 3): Unit = {
@@ -149,9 +166,6 @@ class AuthKeystoneSetup {
       }
 
       override def doneMsg: String = s"removed user ${user.name}, id=${user.id}"
-      override def badStatusMsg(resp: Response): String = {
-        s"delete user request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}"
-      }
       override def reqFailedMsg: String = "delete user request failed"
       override def allTriesFailedMsg: String = s"failed to delete user ${user.name}, id=${user.id}"
     }, tries)
@@ -166,9 +180,6 @@ class AuthKeystoneSetup {
       }
 
       override def doneMsg: String = s"removed tenant $tenantId"
-      override def badStatusMsg(resp: Response): String = {
-        s"delete tenant request failed, status=${resp.getStatusCode}/${resp.getStatusText}, body=${resp.getResponseBody}"
-      }
       override def reqFailedMsg: String = "delete tenant request failed"
       override def allTriesFailedMsg: String = s"failed to remove tenant $tenantId"
     }, tries)
