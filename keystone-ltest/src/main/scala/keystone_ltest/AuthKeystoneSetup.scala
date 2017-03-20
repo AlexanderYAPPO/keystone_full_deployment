@@ -142,7 +142,7 @@ class AuthKeystoneSetup {
     while (triesLeft > 0) {
       triesLeft -= 1
       val resp = Try(rf.newResp)
-      if (resp.isFailure || resp.get.getStatusCode != 200) {
+      if (resp.isFailure || !(200 to 206).contains(resp.get.getStatusCode)) {
         if (resp.isFailure) {
           log.warn(rf.reqFailedMsg, resp.failed.get)
           lastFail = new Exception(rf.reqFailedMsg, resp.failed.get)
