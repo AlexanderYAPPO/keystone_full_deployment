@@ -11,6 +11,7 @@ class BSearchImpl(opts: BSearchCliOptions) {
   var round = 0
 
   val csvResults = new CsvResultsFile(new File(opts.outDir, "res.csv"))
+  val resultsFile = new PrintWriter(java.nio.file.Files.newBufferedWriter(new File(opts.outDir, "results").toPath))
 
   def findSim(testResPath: File) = {
     val files = testResPath.listFiles(new FileFilter {
@@ -155,6 +156,8 @@ class BSearchImpl(opts: BSearchCliOptions) {
         r = m - 1
       }
     }
+    resultsFile.println(l)
+    resultsFile.flush()
     log.info(s"max stable rps found: $l")
   }
 
@@ -166,5 +169,6 @@ class BSearchImpl(opts: BSearchCliOptions) {
       bsearch()
     }
     csvResults.close()
+    resultsFile.close()
   }
 }
