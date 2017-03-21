@@ -32,6 +32,9 @@ object BSearchCliOptions {
     opt[Int]("userCount")
       .action((x, o) => o.copy(userCount = x))
       .text(s"number of users to create (default: ${defaults.userCount})")
+    opt[File]("out-dir")
+      .action((x, o) => o.copy(outDir = x))
+      .text(s"output dir (default: ${defaults.outDir})")
 
     help("help").text("prints this usage text")
   }
