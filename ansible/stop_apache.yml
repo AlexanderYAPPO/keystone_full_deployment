@@ -6,8 +6,3 @@
     - name: Stop apache2
       service: name=apache2 state=stopped
 
-    - name: kill wsgi
-      shell: "kill -HUP 'pidof uwsgi' &> /dev/null"
-      sudo: yes
-      ignore_errors: yes
-
