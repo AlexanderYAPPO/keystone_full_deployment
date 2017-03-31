@@ -28,6 +28,7 @@
     token="{{ keystone_admin_token }}"
     state="{{ item.state|default('present') }}"
   with_items: keystone_services
+  sudo: yes
 
 - name: Create Keystone endpoints
   keystone_endpoint: >
