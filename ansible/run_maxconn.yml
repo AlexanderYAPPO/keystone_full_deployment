@@ -1,0 +1,3 @@
+- hosts: "{{ cluster_name }}_master:{{ cluster_name }}_slaves:{{ cluster_name }}-rally:{{ cluster_name }}-HAProxy"
+  roles:
+    - role: change_maxconn

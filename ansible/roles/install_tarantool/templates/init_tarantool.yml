@@ -1,0 +1,8 @@
+---
+
+
+- shell: "(cd /etc/tarantool/instances.enabled/db_init; tarantool /etc/tarantool/instances.enabled/db_init/init_db.lua >/dev/null 2>&1 &)"
+  async: 10
+  poll: 0
+  sudo: yes
+

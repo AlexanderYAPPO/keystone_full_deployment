@@ -1,0 +1,19 @@
+---
+
+
+- shell: "(cd /etc/tarantool/instances.enabled/db_folder/; tarantool /etc/tarantool/instances.enabled/db_folder/shard1_db.lua >/dev/null 2>&1 &)"
+  async: 10
+  poll: 0
+  sudo: yes
+
+- shell: "(cd /etc/tarantool/instances.enabled/keystone_1/; tarantool /etc/tarantool/instances.enabled/keystone_1/shard_keystone_1.lua >/dev/null 2>&1 &)"
+  async: 10
+  poll: 0
+  sudo: yes
+  
+  
+- shell: "(cd /etc/tarantool/instances.enabled/keystone_2/; tarantool /etc/tarantool/instances.enabled/keystone_2/shard_keystone_2.lua >/dev/null 2>&1 &)"
+  async: 10
+  poll: 0
+  sudo: yes
+

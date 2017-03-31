@@ -1,0 +1,196 @@
+---
+- name: Remove tarantool list
+  shell: "rm /etc/apt/sources.list.d/tarantool.list"
+  ignore_errors: yes
+  sudo: yes
+  
+
+- name: Install tarantool dependencies
+  apt_key: url=http://download.tarantool.org/tarantool/1.7/gpgkey
+  sudo: yes
+  
+
+#- name: key
+#  shell: "curl 'http://download.tarantool.org/tarantool/1.7/gpgkey' | sudo apt-key add -"
+#  sudo: yes 
+    
+- blockinfile: |
+    dest=/etc/apt/sources.list.d/tarantool.list
+    content="deb http://download.tarantool.org/tarantool/1.7/ubuntu/ trusty  main
+    deb-src http://download.tarantool.org/tarantool/1.7/ubuntu/ trusty main"
+    mode=0644
+    marker=""
+    create=yes
+  sudo: yes
+  
+
+- name: update apt packages
+  apt: >
+    update_cache=yes
+    cache_valid_time=3600
+  sudo: yes
+  ignore_errors: yes
+  
+- name: apt-get install tarantool
+  apt: name=tarantool
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install tarantool-common
+  apt: name=tarantool-common
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install tarantool-dev
+  apt: name=tarantool-dev
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install git
+  apt: name=git
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install build-essential
+  apt: name=build-essential
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install lua5.1
+  apt: name=lua5.1
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install lua5.1-dev
+  apt: name=liblua5.1-0-dev
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: apt-get install lua5.1-dev
+  apt: name=tarantool-shard
+#       update_cache=yes
+  sudo: yes
+  
+
+
+- name: apt-get install luarocks
+  apt: name=luarocks
+#       update_cache=yes
+  sudo: yes
+  
+
+- name: install the luarock-packages
+  shell: luarocks install lunajson
+  sudo: yes
+  
+
+- name: install the luarock-packages
+  shell: luarocks install luaposix
+  sudo: yes
+  
+
+- name: install the luarock-packages
+  command: luarocks install https://raw.githubusercontent.com/tarantool/http/master/http-scm-1.rockspec --local
+  sudo: yes
+  ignore_errors: yes
+  
+
+- name: Ensures {{project_root}}/conf dir exists
+  file: path=/etc/tarantool/instances.enabled/db_init state=directory
+  sudo: yes
+
+
+- name: Ensures {{project_root}}/conf dir exists
+  file: path=/etc/tarantool/instances.enabled/db_folder state=directory
+  sudo: yes
+
+- name: Copy the shard1_db.lua file
+  template:
+    src: templates/shard1_db.lua
+    dest: /etc/tarantool/instances.enabled/db_folder/shard1_db.lua
+  sudo: yes
+  ignore_errors: yes
+  
+  
+- name: Ensures {{project_root}}/conf dir exists
+  file: path=/etc/tarantool/instances.enabled/keystone_1 state=directory
+  sudo: yes
+
+- name: Ensures {{project_root}}/conf dir exists
+  file: path=/etc/tarantool/instances.enabled/keystone_2 state=directory
+  sudo: yes
+
+  
+- name: Copy the shard_keystone.lua file
+  template:
+    src: templates/shard_keystone_1.lua
+    dest: /etc/tarantool/instances.enabled/keystone_1/shard_keystone_1.lua
+  sudo: yes
+  ignore_errors: yes
+- name: Copy the shard_keystone.lua file
+  template:
+    src: templates/shard_keystone_2.lua
+    dest: /etc/tarantool/instances.enabled/keystone_2/shard_keystone_2.lua
+  sudo: yes
+  ignore_errors: yes
+  
+
+- name: Copy the init_db.lua file
+  template:
+    src: templates/init_db.lua
+    dest: /etc/tarantool/instances.enabled/db_init/init_db.lua
+  sudo: yes
+  ignore_errors: yes
+
+
+- name: copy uuid4 lua script
+  copy: src=files/uuid4.lua dest="/etc/tarantool/instances.enabled/keystone_1/uuid4.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+- name: copy sha512 lua script
+  copy: src=files/sha512.lua dest="/etc/tarantool/instances.enabled/keystone_1/sha512.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+  
+- name: copy uuid4 lua script
+  copy: src=files/uuid4.lua dest="/etc/tarantool/instances.enabled/keystone_2/uuid4.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+- name: copy sha512 lua script
+  copy: src=files/sha512.lua dest="/etc/tarantool/instances.enabled/keystone_2/sha512.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+
+- name: copy uuid4 lua script
+  copy: src=files/uuid4.lua dest="/etc/tarantool/instances.enabled/db_folder/uuid4.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+- name: copy sha512 lua script
+  copy: src=files/sha512.lua dest="/etc/tarantool/instances.enabled/db_folder/sha512.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+- name: copy uuid4 lua script
+  copy: src=files/uuid4.lua dest="/etc/tarantool/instances.enabled/db_init/uuid4.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+- name: copy sha512 lua script
+  copy: src=files/sha512.lua dest="/etc/tarantool/instances.enabled/db_init/sha512.lua" owner={{global_os_user}} group={{global_os_user}} mode=0751
+  sudo: yes
+
+
+- name: delete example
+  shell: rm /etc/tarantool/instances.enabled/example.lua
+  sudo: yes
+  ignore_errors: yes
+
+- name: Stop tarantool
+  shell: killall tarantool
+  sudo: yes
+  ignore_errors: yes
+

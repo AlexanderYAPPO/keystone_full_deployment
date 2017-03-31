@@ -1,0 +1,28 @@
+
+- name: Copy sysctl config
+  copy: src=files/sysctl.conf dest=/etc/sysctl.conf
+  become: yes
+
+- name: Copy sysctl config
+  copy: src=files/limits.conf dest=/etc/security/limits.conf
+  become: yes
+
+- name: Reload sysctl
+  shell: "sysctl -f /etc/sysctl.conf"
+  become: yes
+
+
+
+- name: Reload sysctl
+  shell: "echo 300000 | sudo tee /proc/sys/fs/nr_open"
+  become: yes
+
+
+- name: Reload sysctl
+  shell: "echo 300000 | sudo tee /proc/sys/fs/file-max"
+  become: yes
+
+- name: Reload sysctl
+  shell: "sudo sysctl -w net.ipv4.ip_local_port_range='1025 65535'"
+  become: yes
+

@@ -1,0 +1,61 @@
+---
+
+- hosts: "{{ cluster_name }}_slaves"
+
+  pre_tasks:
+
+
+    #- name: Stop tarantool
+    #  shell: killall tarantool
+    #  sudo: yes
+    #  ignore_errors: yes
+    - service:
+        name: tarantool
+        state: stopped
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool
+      shell: killall tarantool
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/db_folder/*.xlog
+      sudo: yes
+      ignore_errors: yes
+      
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/db_folder/*.snap
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/db_init/*.snap
+      sudo: yes
+      ignore_errors: yes
+      
+
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/db_init/*.xlog
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/keystone_1/*.xlog
+      sudo: yes
+      ignore_errors: yes
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/keystone_1/*.snap
+      sudo: yes
+      ignore_errors: yes
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/keystone_2/*.snap
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool 2
+      shell: rm /etc/tarantool/instances.enabled/keystone_2/*.xlog
+      sudo: yes
+      ignore_errors: yes
+
