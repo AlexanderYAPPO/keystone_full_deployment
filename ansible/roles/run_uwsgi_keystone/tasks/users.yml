@@ -20,9 +20,9 @@
 
 - name: Create Keystone users
   keystone_user: >
-    user="{{ item.name }}"
-    password="{{ item.password }}"
-    tenant="{{ item.tenant }}"
+    user="admin"
+    password="admin"
+    tenant="admin"
     email="{{ item.email|default('nobody@localhost') }}"
     endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
     token="{{ keystone_admin_token }}"

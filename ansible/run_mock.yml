@@ -1,9 +1,0 @@
----
-
-- hosts: all
-
-  tasks:
-      - name: run mock
-        service:
-          name: mock_mng.sh
-          state: started

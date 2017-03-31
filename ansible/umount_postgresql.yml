@@ -1,8 +1,11 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}-master"
 
   tasks:
     - name: umount (postgresql)
       mount: name="/var/lib/postgresql" src={{hardware_src}} fstype={{hardware_type}} state=unmounted
       sudo: yes
+    - shell: "rm -rf /var/log/mysql/*"
+      sudo: yes
+      ignore_errors: yes

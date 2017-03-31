@@ -3,7 +3,7 @@
   pip: name=MySQL-python virtualenv={{ keystone_dir }}/venv
 
 - name: Install dependencies
-  apt: name={{ item }}
+  apt: name={{ item }} update_cache=yes
   with_items: 
     - python-psycopg2
     - libpq-dev

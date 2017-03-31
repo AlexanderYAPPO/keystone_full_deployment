@@ -20,7 +20,7 @@
 
 - name: Create Keystone tenants
   keystone_user: >
-    tenant="{{ item.name }}"
+    tenant="admin"
     tenant_description="{{ item.description|default('') }}"
     endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
     token="{{ keystone_admin_token }}"

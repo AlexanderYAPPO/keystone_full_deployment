@@ -1,6 +1,6 @@
 ---
 - name: installing MariaDB packages
-  apt: name={{ item }} state=present #update_cache=yes
+  apt: name={{ item }} state=present update_cache=yes
   with_items:
     - "{{mariadb_package_client}}"
     - "{{mariadb_package_server}}"

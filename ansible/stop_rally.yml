@@ -1,18 +1,25 @@
 ---
 
-- hosts: localhost
+- hosts: "bogomolov_tarantool-rally"
 
-  tasks:
+  pre_tasks:
+  - name: stop rally
+    shell: "killall rally"
+    ignore_errors: yes
+    sudo: yes
+
   - name: rally deployment recreate
-    shell: "/home/{{ global_os_user }}/rally/bin/rally-manage db recreate"
-
-  - shell: "chown {{global_os_user}}:{{global_os_user}} /home/{{global_os_user}}/rally -R"
-
+    shell: "/usr/local/bin/rally-manage db recreate"
+  
   - name: prepare rally
-    shell: "/home/{{ global_os_user }}/rally/bin/rally deployment create --fromenv --name=existing"
+    shell: "/usr/local/bin/rally deployment create --fromenv --name=existing"
     environment:
        OS_USERNAME: "{{ global_keystone_user }}"
        OS_PASSWORD: "{{ global_keystone_password }}"
-       OS_AUTH_URL: "{{ global_keystone_auth }}"
-       OS_ENDPOINT: "{{ global_keystone_auth }}"
+       #OS_AUTH_URL: "http://{{hostvars[groups[cluster_name + '-slave-1'][0]].openstack.private_v4}}:35357/v2.0"
+       #OS_ENDPOINT: "http://{{hostvars[groups[cluster_name + '-slave-1'][0]].openstack.private_v4}}:35357/v2.0"
+       OS_AUTH_URL: "http://{{hostvars[groups[cluster_name + '-HAProxy'][0]].openstack.private_v4}}:35357/v2.0"
+       OS_ENDPOINT: "http://{{hostvars[groups[cluster_name + '-HAProxy'][0]].openstack.private_v4}}:35357/v2.0"
        OS_TENANT_NAME: "{{ global_keystone_tenant }}"
+  - name: rally deployment use existing
+    shell: "/usr/local/bin/rally deployment use existing"

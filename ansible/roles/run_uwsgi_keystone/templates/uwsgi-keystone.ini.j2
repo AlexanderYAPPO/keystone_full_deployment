@@ -4,6 +4,7 @@
 {% set endpoint_role="admin" %}
 {% endif %}
 [uwsgi]
+disable-logging=True
 socket = /tmp/keystone_{{ endpoint_role }}.sock
 chmod-socket = 666
 processes = 8

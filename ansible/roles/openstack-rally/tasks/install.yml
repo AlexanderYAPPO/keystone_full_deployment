@@ -1,7 +1,7 @@
----
+ ---
 
 - name: Install Rally dependencies
-  apt: name="{{ item }}" state=present
+  apt: name="{{ item }}" state=present update_cache=yes
   with_items:
     - build-essential
     - libssl-dev
@@ -16,17 +16,23 @@
 
 #- name: Download Rally installation script
 #  get_url: url=https://raw.githubusercontent.com/openstack/rally/master/install_rally.sh dest=~
+- name: Copy Rally installation script
+  copy: src=files/install_rally.sh dest=/home/{{global_os_user}}/install_rally.sh
+  become: yes
 
 - name: Install Rally
-  shell: 'bash ~/install_rally.sh -v -y --target {{rally_dir}}'
+  shell: 'bash /home/{{global_os_user}}/install_rally.sh -v -y --target {{rally_dir}}'
 
 - shell: "chown {{global_os_user}}:{{global_os_user}} /home/{{global_os_user}}/rally -R"
 
 - name: prepare rally
   shell: "{{ rally_dir }}/bin/rally deployment create --fromenv --name=existing"
   environment:
-     OS_USERNAME: "{{ global_keystone_user }}"
-     OS_PASSWORD: "{{ global_keystone_password }}"
-     OS_AUTH_URL: "{{ global_keystone_auth }}"
-     OS_ENDPOINT: "{{ global_keystone_auth }}"
-     OS_TENANT_NAME: "{{ global_keystone_tenant }}"
+       OS_USERNAME: "{{ global_keystone_user }}"
+       OS_PASSWORD: "{{ global_keystone_password }}"
+       OS_AUTH_URL: "http://{{hostvars[groups[cluster_name + '-HAProxy'][0]].openstack.private_v4}}:35357/v2.0"
+       OS_ENDPOINT: "http://{{hostvars[groups[cluster_name + '-HAProxy'][0]].openstack.private_v4}}:35357/v2.0"
+       OS_TENANT_NAME: "{{ global_keystone_tenant }}"
+
+- name: prepare rally
+  shell: "{{ rally_dir }}/bin/rally deployment use existing"

@@ -19,7 +19,7 @@ import site
 name = os.path.basename(__file__)
 
 # Change environment for applications running via wsgi to venv
-activate_this = os.path.expanduser("/home/modis/keystone/venv/bin/activate_this.py")
+activate_this = os.path.expanduser("/home/ubuntu/keystone/venv/bin/activate_this.py")
 execfile(activate_this, dict(__file__ = activate_this))
 
 from keystone.server import wsgi as wsgi_server
@@ -28,7 +28,7 @@ from keystone.server import wsgi as wsgi_server
 # The following is a reference to Python Paste Deploy documentation
 # http://pythonpaste.org/deploy/
 
-from werkzeug.contrib.profiler import ProfilerMiddleware
+#from werkzeug.contrib.profiler import ProfilerMiddleware
 
 application = wsgi_server.initialize_application(name)
 #application = ProfilerMiddleware(app, profile_dir="/dev/shm/werkzeug_output")

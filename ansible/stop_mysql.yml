@@ -1,9 +1,12 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}-master"
 
   pre_tasks:
     - name: stop mariadb
       service: name=mysql state=stopped
+      sudo: yes
+      ignore_errors: yes
+    - shell: sudo killall mysqld
       sudo: yes
       ignore_errors: yes

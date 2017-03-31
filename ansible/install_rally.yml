@@ -1,7 +1,8 @@
 ---
 
-- hosts: 127.0.0.1
+- hosts: "{{cluster_name}}-rally"
 
   roles:
     - role: openstack-rally
       rally_dir: /home/{{ global_os_user }}/rally
+      sudo: yes

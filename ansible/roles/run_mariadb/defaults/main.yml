@@ -53,7 +53,7 @@ mariadb_default_config:
       - datadir = "{{mariadb_datadir}}"
       - tmpdir = /tmp
       - skip_external_locking = True
-      - bind_address = 127.0.0.1
+      - bind_address = 0.0.0.0
       - key_buffer = 16M
       - max_allowed_packet = 16M
       - thread_stack = 192K
@@ -84,7 +84,8 @@ mariadb_default_config:
       - innodb_doublewrite = 0
       - innodb_use_native_aio = 0
       - server_id = 1
-      - log_bin = /var/log/mysql/mysql-bin.log
+      #- log_bin = /var/log/mysql/mysql-bin.log
+      - skip-log-bin
       - expire_logs_days = 10
       - max_binlog_size = 100M
   - name: 'mysqldump'

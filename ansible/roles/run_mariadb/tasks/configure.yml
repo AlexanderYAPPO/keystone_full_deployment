@@ -3,11 +3,18 @@
   service:
     name: mysql
     state: stopped
-
-
+- name: data delete
+  command: rm /var/lib/mysql/*
+  become: yes
+  ignore_errors: yes
 # be sure all folders exists before resting permissions
 - name: ensure /run/mysqld folder exists
   file: path=/run/mysqld owner=mysql group=mysql mode=0755 state=directory
+
+#- name: Remove data
+#  shell: "rm /var/lib/mysql/*"
+#  become: yes
+#  ignore_errors: yes
 
 # reseting permissions
 - name: reset mariadb data folder and subfolder to new uid
@@ -32,13 +39,13 @@
   when: mariadb_gid
 
 - name: check datadir/mysql is present
-  stat: path={{mariadb_datadir}}/mysql
+  stat: path={{mariadb_datadir}}
   register: datadir_is_ok
 
 # build default tables if absent
 - name: create default databases if not exist
   command: mysql_install_db --user=mysql --ldata={{mariadb_datadir}}
-  when: datadir_is_ok.stat.exists == False
+  #when: datadir_is_ok.stat.exists == False
 - name: set .my.cnf root blank password for temporary mariadb
   lineinfile: dest=/root/.my.cnf regexp='^password=' line='password=' owner=root group=root mode=0600
   ignore_errors: yes
@@ -88,3 +95,5 @@
 
 - name: set debian-sys-maint user account
   mysql_user: name='debian-sys-maint' password='{{mariadb_debsysmaint_password}}' priv=*.*:ALL state=present
+
+

@@ -15,3 +15,6 @@
 
 - name: Grant Privileges2
   mysql_user: name=keystone host="%" password={{ global_keystone_password }} priv=keystone.*:GRANT,ALL login_user={{ global_mariadb_user }} login_password={{ global_mariadb_password }}
+
+- name: restart mariadb
+  service: name=mysql state=restarted
