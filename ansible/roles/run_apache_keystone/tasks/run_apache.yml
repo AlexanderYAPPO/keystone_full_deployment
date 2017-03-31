@@ -1,5 +1,5 @@
 
-  
+
 - name: Change Apache config
   lineinfile: dest=/etc/apache2/apache2.conf line="ServerName {{ global_keystone_auth }}"
   sudo: yes
@@ -18,7 +18,7 @@
   sudo: yes
   when: ap_link_is_ok.stat.exists == False
 
-- include: wsgi_configuration.yml
+#- include: wsgi_configuration.yml
 
 - name: Restart Apache2
   service: name=apache2 state=restarted

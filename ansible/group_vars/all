@@ -1,13 +1,15 @@
 ---
 
 global_keystone_user: admin
-global_keystone_password: tester
+global_keystone_password: admin
 global_keystone_token: admin
 global_keystone_tenant: admin
 global_keystone_auth: "http://127.0.0.1:35357/v2.0"
-global_keystone_public: "http://127.0.0.1:5000/v2.0"
+global_keystone_public: "http://127.0.0.1:35357:5000/v2.0"
 global_mariadb_user: root
 global_mariadb_password: tester
-global_os_user: modis
+global_os_user: ubuntu
 global_postgresql_password: tester
 global_skip: False
+global_db: postgresql
+

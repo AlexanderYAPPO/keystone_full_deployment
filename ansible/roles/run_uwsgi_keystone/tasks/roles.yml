@@ -20,9 +20,9 @@
 
 - name: Add Keystone roles to defined users in defined tenants
   keystone_user: >
-    role="{{ item.name }}"
-    user="{{ item.user }}"
-    tenant="{{ item.tenant }}"
+    role="admin"
+    user="admin"
+    tenant="admin"
     endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
     token="{{ keystone_admin_token }}"
     state="{{ item.state|default('present') }}"

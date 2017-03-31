@@ -5,6 +5,6 @@
     name: uwsgi
     virtualenv: "{{ keystone_dir }}/venv"
 
-- name: isntall nginx
-  apt: name=nginx
-  sudo: yes
+#- name: isntall nginx
+#  apt: name=nginx
+#  sudo: yes

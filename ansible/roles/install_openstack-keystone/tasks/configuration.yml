@@ -25,7 +25,14 @@
 - name: Create dir for keystone
   file: path=/var/log/keystone state=directory mode=0755 owner={{ global_os_user }}
   sudo: yes
-
+- name: ensure file exists
+  copy:
+    content: ""
+    dest: /etc/keystone/keystone.conf
+    force: no
+    group: ubuntu
+    owner: ubuntu
+    mode: 0555
 - name: Configure Keystone
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -51,6 +58,7 @@
     - section:  DEFAULT
       option:   public_port
       value:    "{{ keystone_port }}"
+  sudo: yes
 
 - name: Deploy policy.json file
   copy: src=policy.json dest=/etc/keystone/policy.json owner={{ global_os_user }}

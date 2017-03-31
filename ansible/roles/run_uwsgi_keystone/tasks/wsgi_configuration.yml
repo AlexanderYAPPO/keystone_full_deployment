@@ -10,8 +10,4 @@
   template: src=application.py.j2 dest={{ keystone_cgi_dir }}/admin owner={{ global_os_user }}
   sudo: yes
 
-- name: WSGI component to admin for profiling
-  template: src=application_profile.py.j2 dest={{ keystone_cgi_dir }}/admin_profile owner={{ global_os_user }}
-  sudo: yes
-
 

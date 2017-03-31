@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}-master"
   roles:
     - role: install_mariadb
       mariadb_root_username: "{{ global_mariadb_user }}"

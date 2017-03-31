@@ -1,5 +1,5 @@
 - name: install dependencies
-  apt: name="{{ item }}" state=present
+  apt: name="{{ item }}" state=present update_cache=yes
   with_items:
     - build-essential
     - libssl-dev
@@ -17,7 +17,7 @@
   sudo: yes
 
 - name: clone keystone
-  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes
+  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes version='cf9ebb4d0fc122f9a06188ab06b6523959ec654f'
 
 - name: install virtualenv
   pip: name=virtualenv

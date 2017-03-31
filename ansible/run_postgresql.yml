@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: "{{cluster_name}}_master"
 
   roles:
     - role: run_postgresql

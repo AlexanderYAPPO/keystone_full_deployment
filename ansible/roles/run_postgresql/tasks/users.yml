@@ -1,9 +1,10 @@
 # file: postgresql/tasks/users.yml
 
-- name: PostgreSQL | Ensure PostgreSQL is running
+
+- name: PostgreSQL | Restart PostgreSQL
   service:
-    name: postgresql
-    state: started
+    name: "postgresql"
+    state: restarted
 
 - name: PostgreSQL | Create users
   postgresql_user:
@@ -13,5 +14,4 @@
     state: present
     login_user: "{{postgresql_admin_user}}"
     login_password: "{{ global_postgresql_password }}"
-  sudo: yes
-  sudo_user: "{{postgresql_admin_user}}"
+
