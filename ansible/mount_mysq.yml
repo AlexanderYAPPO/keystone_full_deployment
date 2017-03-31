@@ -1,0 +1,21 @@
+---
+
+- hosts: "{{ cluster_name }}-master"
+
+  pre_tasks:
+    - mount: name={{mariadb_datadir}} src={{hardware_src}} fstype={{hardware_type}} state=mounted
+      ignore_errors: yes
+      sudo: yes
+    #- shell: "rm -rf /var/log/mysql/*"
+    #  sudo: yes
+    #  ignore_errors: yes
+    - shell: "rm -rf {{mariadb_datadir}}/*"
+      sudo: yes
+      ignore_errors: yes
+    - command: chown mysql:mysql {{mariadb_datadir}} -R
+      sudo: yes
+  vars:
+      mariadb_datadir: /var/lib/mysql
+
+
+

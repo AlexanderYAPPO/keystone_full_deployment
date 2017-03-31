@@ -1,0 +1,5 @@
+- hosts: "{{cluster_name}}-HAProxy"
+  roles:
+    - role: haproxy
+      sudo: yes
+

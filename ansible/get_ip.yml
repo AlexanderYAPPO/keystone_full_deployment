@@ -1,0 +1,8 @@
+---
+- name: get_ip
+  shell: ansible -i openstack_inventory.py -m debug -a var=hostvars[inventory_hostname].ansible_ssh_host bogomolov_keystone-master
+  register: out
+- name: parse_ip
+  shell: python parse_ip.py '{{out.stdout}}'
+  register: out2
+- debug: var=out2.stdout

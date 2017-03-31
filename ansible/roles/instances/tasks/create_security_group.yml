@@ -1,0 +1,22 @@
+---
+
+- name: create security group
+  os_security_group:
+    state: present
+    name: "{{ cluster_name }}"
+    description: "Security group for keystone + {{ cluster_name }}"
+
+- os_security_group_rule:
+    security_group: "{{ cluster_name }}"
+    protocol: icmp
+    remote_ip_prefix: 0.0.0.0/0
+
+- os_security_group_rule:
+    security_group: "{{ cluster_name }}"
+    protocol: tcp
+    remote_ip_prefix: 0.0.0.0/0
+
+- os_security_group_rule:
+    security_group: "{{ cluster_name }}"
+    protocol: udp
+    remote_ip_prefix: 0.0.0.0/0

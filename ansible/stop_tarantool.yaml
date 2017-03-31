@@ -1,0 +1,28 @@
+---
+
+- hosts: "{{ cluster_name }}_slaves"
+
+  pre_tasks:
+
+
+    #- name: Stop tarantool
+    #  shell: killall tarantool
+    #  sudo: yes
+    #  ignore_errors: yes
+    - service:
+        name: tarantool
+        state: stopped
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop tarantool
+      shell: killall tarantool
+      sudo: yes
+      ignore_errors: yes
+
+
+    - name: Stop tarantool 2
+      shell: "rm -rf /etc/tarantool/instances.enabled/*"
+      sudo: yes
+      ignore_errors: yes
+

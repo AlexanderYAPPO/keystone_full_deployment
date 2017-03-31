@@ -1,0 +1,15 @@
+#master
+cluster_name: bogomolov_keystone
+os_image: #"Ubuntu 14.04.4 Trusty x86_64 cloud image (248.0 MB)"
+master_flavor: keystone.xlarge
+
+os_key_name: bogomolov_tarantool
+floating_ip_pool: #isp
+virtual_network: #test
+boot_from_volume:
+
+#slaves
+flavor: keystone.medium
+n_slaves: 7
+
+

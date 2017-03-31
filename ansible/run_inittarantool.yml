@@ -1,0 +1,5 @@
+---
+
+- hosts: "{{ cluster_name }}-slave-1"
+  roles:
+    - role: init_tarantool

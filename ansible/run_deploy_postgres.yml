@@ -1,0 +1,11 @@
+---
+
+- hosts: "{{ cluster_name }}-master"
+
+  roles:
+    - role: install_postgresql  
+      postgresql_admin_user: "postgres"
+
+    - role: run_postgresql
+      postgresql_admin_user: "postgres"
+      sudo: yes
