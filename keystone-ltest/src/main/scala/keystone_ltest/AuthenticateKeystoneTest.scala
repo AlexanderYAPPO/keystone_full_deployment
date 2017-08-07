@@ -19,6 +19,7 @@ class AuthenticateKeystoneTest extends Simulation {
           .exec(http("tokens")
             .post("/tokens")
             .body(StringBody(session => setup.randomUserTokensJson))
+            .header("Content-Type", "application/json")
             .check(status.is(200)))
     }
 
