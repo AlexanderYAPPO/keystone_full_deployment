@@ -5,6 +5,7 @@
   service:
     name: "postgresql"
     state: restarted
+  become: true
 
 - name: PostgreSQL | Create users
   postgresql_user:
@@ -14,4 +15,5 @@
     state: present
     login_user: "{{postgresql_admin_user}}"
     login_password: "{{ global_postgresql_password }}"
+    encrypted: True
 

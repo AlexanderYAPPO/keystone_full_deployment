@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #import matplotlib
 #matplotlib.use('Agg')  # fix "no $DISPLAY" and "no display name" errors
+import time
 from numpy import array
 from scipy import stats
 from getpass import getuser
@@ -9,12 +10,15 @@ from json import dump
 from json import loads
 from os import makedirs
 from os import path
+from os import devnull
 from subprocess import Popen
 from subprocess import PIPE
 from subprocess import check_output
 
+DEVNULL = open(devnull, 'wb')
+
 THRESHOLD = 0.001
-TIMES = 360
+TIMES = 180
 DEP_NAME = "existing"
 
 
@@ -23,7 +27,7 @@ class DegradationCheck:
         self.id_dict = {}  # {rps : id}
         user = getuser()
         self.home_dir = "/home/%s" % user
-        self.rally_path = "/usr/local/bin/rally"#"%s/rally/bin/rally" % self.home_dir
+        self.rally_path = "%s/rally/bin/rally" % self.home_dir
         self.results_dir = "%s/results/%s/%s/%s" % (self.home_dir,
                                                     hardware.replace("/", ""),
                                                     database,
@@ -52,10 +56,10 @@ class DegradationCheck:
     def update_rps(self, rps):
         context = {}
         runner = {}
-        context["project_domain"] = "default"
+        context["project_domain"] = "Default"
         context["resource_management_workers"] = 1
         context["tenants"] = 1
-        context["user_domain"] = "default"
+        context["user_domain"] = "Default"
         context["users_per_tenant"] = 1
         runner["type"] = "rps"
         runner["rps"] = int(rps)
@@ -65,7 +69,15 @@ class DegradationCheck:
         #runner["max_concurrency"] = 8
         task_dict = {"Authenticate.keystone": [{
             "context": {"users": context},
-            "runner": runner
+            "runner": runner,
+            "sla": {
+      		#"max_avg_duration": 5,
+      		#"max_seconds_per_iteration": 10,
+
+                "failure_rate": {
+                    "max": 0
+                }
+            }
             }]}
         with open(self.home_dir + "/nfind.json", 'wb') as outfile:
             dump(task_dict, outfile)
@@ -74,38 +86,46 @@ class DegradationCheck:
         self.update_rps(rps)  # rps changing
         p1 = Popen([self.rally_path, "deployment", "use", DEP_NAME], stdout=PIPE)
         p1.wait()
+        time.sleep(3)
         p2 = Popen([self.rally_path,
-                    "--noverbose",
+                    "--log-file",
+                    "/dev/null",
                     "task",
                     "start",
+                    "--abort-on-sla-failure",
                     self.home_dir + "/nfind.json"],
-                   stdout=PIPE)
+                    stderr=DEVNULL,
+                    stdout=DEVNULL)
         p2.wait()
-        txt = p2.communicate()[0].decode("utf-8")
+        print("-"*10)
+        p2.communicate()
+        #txt = p2.communicate()[0].decode("utf-8")
         print "="*10
         print "rally task results"
         print "="*10
-        if "task results" not in txt:
-            return (False, False)
-        id = txt.split("rally task results ")[1].replace("\n", "")
-        result = check_output("%s task results %s" % (self.rally_path, id),
+        #if "started" not in txt:
+        #    return (False, False)
+        #id = None
+        #id = txt.split("Task  b6faa635-584f-4b84-9894-63b1e642e496: started")[1].replace("\n", "") TODO: regexp
+        result = check_output("%s task results" % self.rally_path,# %s" % (self.rally_path, id),
                               shell=True
                               )
         return (id, result.decode("utf-8"))
 
     def save_results(self, rps):
-        if rps in self.id_dict:
-            id = self.id_dict[rps]
+        ##if rps in self.id_dict:
+        ##    id = self.id_dict[rps]
         #'''
-        json_data = check_output("%s task results %s" % (self.rally_path, id),
+        json_data = check_output("%s task results" % (self.rally_path),
                                  shell=True).decode("utf-8")
         json_fname = self.results_dir + '/%srps.json' % rps
         #'''
         html_fname = self.results_dir + '/%srps.html' % rps
         #with open(json_fname, 'wb') as outfile:
         #    dump(json_data, outfile)
-        report_args = (self.rally_path, id, html_fname)
-        check_output("%s task report %s --out %s" % report_args, shell=True)
+        report_args = (self.rally_path, html_fname)
+        check_output("%s task report --out %s" % report_args, shell=True)
+        print("%s task report --out %s" % report_args)
 
     def is_degradation(self, rps):
         print "="*10
@@ -113,9 +133,9 @@ class DegradationCheck:
         print "="*10
         self.create_dir(self.results_dir)
         id, json_data = self.get_results(rps)
-        if not id:
-            return True
-        self.id_dict[rps] = id
+        ###if not id:
+        ###    return True
+        #self.id_dict[rps] = id
         tmp_x = []
         tmp_y = []
         full_json = loads(json_data)[0]
@@ -123,7 +143,7 @@ class DegradationCheck:
         iter = 0
         for result in full_json["result"]:
             t2 = result["timestamp"] - t1
-            if t2 > 120:
+            if t2 > -1:
                 tmp_x.append(result["timestamp"])
                 tmp_y.append(float(result["duration"]))
             else:
@@ -138,5 +158,6 @@ class DegradationCheck:
             #    return True
         with open(self.results_dir + '/sk_iters.txt', 'a') as f:
             f.write("rps:%s: first %s iterations  skipped\n" % (rps, iter))
+        self.save_results(rps) ##########
         return self.lin_regress(tmp_x, tmp_y)
 

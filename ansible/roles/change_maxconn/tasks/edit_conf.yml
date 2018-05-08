@@ -23,6 +23,9 @@
   become: yes
 
 - name: Reload sysctl
-  shell: "sudo sysctl -w net.ipv4.ip_local_port_range='1025 65535'"
+  shell: "sysctl -w net.ipv4.ip_local_port_range='1025 65535'"
   become: yes
 
+- name: Sync time
+  shell: "ntpdate 0.pool.ntp.org"
+  become: yes

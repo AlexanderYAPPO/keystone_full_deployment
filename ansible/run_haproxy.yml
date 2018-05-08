@@ -1,4 +1,4 @@
-- hosts: "{{cluster_name}}-HAProxy"
+- hosts: "bogomolov_keystone-HAProxy"
   roles:
     - role: haproxy
       sudo: yes

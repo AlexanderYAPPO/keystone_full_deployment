@@ -1,6 +1,6 @@
 ---
 
-- hosts: "{{ cluster_name }}-master"
+- hosts: "bogomolov_keystone-master"
 
   tasks:
     - name: umount (postgresql)

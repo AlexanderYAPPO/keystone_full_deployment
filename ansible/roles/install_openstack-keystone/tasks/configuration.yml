@@ -30,8 +30,8 @@
     content: ""
     dest: /etc/keystone/keystone.conf
     force: no
-    group: ubuntu
-    owner: ubuntu
+    group: modis
+    owner: modis
     mode: 0555
 - name: Configure Keystone
   ini_file: >
@@ -40,9 +40,6 @@
     option="{{ item.option }}"
     value="{{ item.value }}"
   with_items:
-    - section:  DEFAULT
-      option:   admin_token
-      value:    "{{ keystone_admin_token }}"
     - section:  DEFAULT
       option:   log_dir
       value:    "{{ keystone_log_dir }}"
@@ -73,6 +70,7 @@
     - section: database
       option: connection
       value: "{{ keystone_database_url }}"
+  become: true
 
 - name: Copy keystone-paste.ini
   copy: src=keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}

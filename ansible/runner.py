@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 #from ansible.playbook import PlayBook
 #from ansible import callbacks
 #from ansible import utils
-from degr import DegradationCheck
+from degr_kong import DegradationCheck
 from getpass import getuser
 import os
 import sys
@@ -63,31 +63,42 @@ class Generator:
                 for web_server in WEB_SERVERS:
                     for hardware in HARDWARE_LIST:
                         new_list = [
-                            Task("stop", "tarantool", Extra()),
+                            Task("stop", "kong", Extra()),
+             
+                            Task("stop", "uwsgi", Extra()),
+                            Task("stop", "redis", Extra()),
+                            Task("stop", "postgresql", Extra()),
+                            Task("stop", "cassandra", Extra()),
+                            Task("umount", hardware, Extra(database)),
+                            #Task("mount", hardware, Extra(database)),
+                            Task("stop", "postgresql", Extra()),
+                            Task("run", "cassandra", Extra()),
+                            Task("run", "kong", Extra()),
+                            #Task("stop", "tarantool", Extra()),
                             #Task("stop", "rally", Extra()),
                             #Task("run_instances", web_server, Extra()),
-                            Task("stop", web_server, Extra()),
-                            Task("stop", database, Extra()),
+                            #Task("stop", web_server, Extra()),
+                            #Task("stop", database, Extra()),
                             #Task("stop", "apache", Extra()),
                             #Task("umount", "mysql", Extra()),
                             #Task("umount", "postgresql", Extra()),
-                            Task("umount", "postgresql", Extra(database)),
-                            Task("mount", hardware, Extra(database)),
+                            #Task("umount", "postgresql", Extra(database)),
+                            #Task("mount", hardware, Extra(database)),
                             #Task("install", "postgresql", Extra()),
                             #Task("install", "uwsgi", Extra()),
                             #Task("install", "keystone", Extra()),
-                            Task("run", database, Extra(database)),
+                            #Task("run", database, Extra(database)),
 
-                            Task("run", web_server, Extra(database)),
+                            #Task("run", web_server, Extra(database)),
                             #Task("run", "inittarantool", Extra(database)),
                             ##Task("func", "tests", Extra(database,
                             ##                            hardware,
-                            ##                            web_server,
-                            ##                            1,
-                            ##                            20
+                            ##                           web_server,
+                            ##                           1,
+                            ##                            500
                             ##                            )),
-                            ##Task("stop", web_server, Extra()),
-                            #Task("stop", database, Extra()),
+                            ###Task("stop", web_server, Extra()),
+                            ##Task("stop", database, Extra()),
                             #T#ask("umount", database, Extra(database))
 #                           # Task("stop", "rally", Extra())
                             ]
@@ -160,8 +171,11 @@ class Runner:
 
     @staticmethod
     def run_playbook(name, **kwargs):
-        kwargs["cluster_name"] = "bogomolov_keystone"
-        kwargs["n_slaves"] = "32"
+        kwargs["cluster_name"] = "bogomolov_keystone_kong"
+        with open("/home/modis/cur_n.txt", "r") as f:
+            txt = f.readline()
+        print(txt)
+        kwargs["n_slaves"] = txt.replace("\n", "")
         #kwargs["global_db"] = "postgresql"
         kwargs["ansible_ssh_private_key_file"] = "~/.ssh/bogomolov_key.key"
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
@@ -174,7 +188,6 @@ class Runner:
             inventory = Inventory(loader=loader, variable_manager=variable_manager,  host_list="%s/openstack_inventory.py" % ansible_dir)
             variable_manager.set_inventory(inventory)
         playbook_path = '/home/%s/keystone_full_deployment/ansible/%s.yml' % (getuser(), name)
-
         if not os.path.exists(playbook_path):
             print '[INFO] The playbook does not exist'
             sys.exit()
