@@ -46,3 +46,8 @@
 - name: Restart nginx
   service: name=nginx state=restarted
   sudo: yes
+
+- name: bootstrap fix
+  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://10.10.10.10:35357/v3 --bootstrap-public-url http://10.10.10.10:5000/v3 --bootstrap-internal-url http://10.10.10.10:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+
+

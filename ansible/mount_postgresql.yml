@@ -1,6 +1,6 @@
 ---
 
-- hosts: "{{ cluster_name }}-master"
+- hosts: all
 
   pre_tasks:
     - mount: name="/var/lib/postgresql/" src={{hardware_src}} fstype={{hardware_type}} state=mounted

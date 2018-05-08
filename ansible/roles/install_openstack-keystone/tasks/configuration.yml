@@ -73,6 +73,7 @@
     - section: database
       option: connection
       value: "{{ keystone_database_url }}"
+  sudo: yes
 
 - name: Copy keystone-paste.ini
   copy: src=keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}

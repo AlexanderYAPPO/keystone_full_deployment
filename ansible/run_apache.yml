@@ -1,25 +1,25 @@
 ---
 
-- hosts: "{{ cluster_name }}_slaves"
-  pre_tasks:
-    - name: Install Apache2
-      apt: name={{ item }} state=present update_cache=yes
-      with_items:
-          - apache2
-          - libapache2-mod-wsgi
-      become: yes
-    - name: Remove default config
-      shell: "rm -rf /etc/apache2/sites-enabled/*"
-      become: yes
-      ignore_errors: yes
-    - name: Remove default config
-      shell: "rm -rf /etc/apache2/sites-available/*"
-      become: yes
-      ignore_errors: yes
+- hosts: all
+#  pre_tasks:
+#    - name: Install Apache2
+#      apt: name={{ item }} state=present update_cache=yes
+#      with_items:
+#          - apache2
+#          - libapache2-mod-wsgi
+#      become: yes
+#    - name: Remove default config
+#      shell: "rm -rf /etc/apache2/sites-enabled/*"
+#      become: yes
+#      ignore_errors: yes
+#    - name: Remove default config
+#      shell: "rm -rf /etc/apache2/sites-available/*"
+#      become: yes
+#      ignore_errors: yes
   roles:
     - role: run_apache_keystone
       keystone_dir: /home/{{ global_os_user }}/keystone
-      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{hostvars[groups[cluster_name + '_master'][0]].openstack.private_v4}}/keystone"
+      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
       keystone_admin_token: "{{ global_keystone_token }}"
       keystone_admin_port: 35357
       keystone_port: 5000

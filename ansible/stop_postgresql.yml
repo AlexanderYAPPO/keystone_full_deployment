@@ -1,6 +1,6 @@
 ---
 
-- hosts: "{{ cluster_name }}-master"
+- hosts: all
 
   pre_tasks:
     - name: Stop postgresql
@@ -14,5 +14,5 @@
       service: name=postgresql state=stopped
       sudo: yes
   vars:
-    postgresql_version: 9.3
+    postgresql_version: 10
     postgresql_cluster_name: "main"

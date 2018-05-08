@@ -1,8 +1,10 @@
 ---
 
-- hosts: "{{ cluster_name }}_slaves"
+- hosts: all
 
   tasks:
     - name: Stop apache2
       service: name=apache2 state=stopped
-
+      
+    - name: restart memcached
+      service: name=memcached state=restarted

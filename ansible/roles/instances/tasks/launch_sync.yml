@@ -1,22 +1,22 @@
 
 ---
 
-- name: initialize security group
-  include: create_security_group.yml
+#- name: initialize security group
+#  include: create_security_group.yml
 
-- name: create master
-  os_server:
-    state: present
-    name: "{{ cluster_name }}-master"
-    image: "{{ os_image }}"
-    flavor: "{{ master_flavor }}"
-    key_name: "{{ os_key_name }}"
-    floating_ip_pools: "{{ floating_ip_pool }}"
-    network: "{{ virtual_network }}"
-    #boot_from_volume: "{{ boot_from_volume }}"
-    security_groups: "{{ cluster_name }}"
-    meta: "hostname={{ cluster_name }}-master,group={{ cluster_name }}_master"
-  retries: 3
+#- name: create master
+#  os_server:
+#    state: present
+#    name: "{{ cluster_name }}-master"
+#    image: "{{ os_image }}"
+#    flavor: "{{ master_flavor }}"
+#    key_name: "{{ os_key_name }}"
+#    floating_ip_pools: "{{ floating_ip_pool }}"
+#    network: "{{ virtual_network }}"
+#    #boot_from_volume: "{{ boot_from_volume }}"
+#    security_groups: "{{ cluster_name }}"
+#    meta: "hostname={{ cluster_name }}-master,group={{ cluster_name }}_master"
+#  retries: 3
 
 #- name: ssh fix
 #  shell: "ssh-keygen -R {{hostvars[groups[ item ][0]].openstack.public_v4}}"

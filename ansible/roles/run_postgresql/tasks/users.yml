@@ -14,4 +14,5 @@
     state: present
     login_user: "{{postgresql_admin_user}}"
     login_password: "{{ global_postgresql_password }}"
+    encrypted: True
 
