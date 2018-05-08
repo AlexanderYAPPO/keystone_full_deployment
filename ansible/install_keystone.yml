@@ -1,11 +1,11 @@
 ---
 
-- hosts: "{{ cluster_name }}_slaves"
+- hosts: "bogomolov_keystone_kong-slave-11" #"{{ cluster_name }}_slaves"
   roles:
     - role: install_openstack-keystone
       install_flag: "yes"
       keystone_dir: /home/{{ global_os_user }}/keystone
-      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{hostvars[groups[cluster_name + '_master'][0]].openstack.private_v4}}/keystone"
+      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{hostvars[inventory_hostname]['groups']['bogomolov_keystone-master'][0]}}/keystone"
       keystone_admin_token: "{{ global_keystone_token }}"
       keystone_admin_port: 35357
       keystone_port: 5000

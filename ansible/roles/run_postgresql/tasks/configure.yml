@@ -1,54 +1,73 @@
 # file: postgresql/tasks/configure.yml
 - name: Stop postgresql
   service: name=postgresql state=stopped
-  sudo: yes
+  become: true
 - name: PostgreSQL | delete cluster
   shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}
-  sudo: yes
+  become: true
   ignore_errors: yes
 - name: Stop postgresql
   service: name=postgresql state=stopped
-  sudo: yes
+  become: true
 
 
 - name: Rules
   command: rm -rf /var/lib/postgresql/*
-  sudo: yes
+  become: true
   ignore_errors: yes
 
-- name: Rules
-  command: chown postgres:postgres /var/lib/postgresql -R
+#- name: Rules
+#  shell: chown postgres:postgres /var/lib/postgresql -R
+#  sudo: yes
+
+- file:
+    path: /var/lib/postgresql
+    owner: postgres
+    group: postgres
+    recurse: yes
   sudo: yes
 
-- name: Rules
-  command: "chmod 777 /var/lib -R"
-  sudo: yes
-- name: Rules
-  command: "chmod 777 /etc/postgresql -R"
-  sudo: yes
+#- name: Rules
+#  command: "chmod 777 /var/lib -R"
+#  become: yes
+#- name: Rules
+#  command: "chmod 777 /etc/postgresql -R"
+#  become: yes
+
+#- file:
+#    path: /var/lib
+#    mode: 0777
+#    recurse: yes
+#  sudo: yes
+
+- file:
+    path: /etc/postgresql
+    mode: 0777
+    recurse: yes
+  become: true
 
 - name: Change owners
   shell: "chown -R postgres:postgres /var/lib/postgresql"
-  sudo: yes
+  become: true
 
 - name: Rules
-  command: chown postgres:postgres /etc/postgresql -R
-  sudo: yes
+  command: "chown postgres:postgres /etc/postgresql -R"
+  become: true
 
 
 - name: Change owners
   shell: "chown -R postgres:postgres /etc/postgresql"
-  sudo: yes
+  become: true
 
 
 
 
 
 - name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
-  become: yes
+  become: true
   shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
-#  sudo: yes
-#  sudo_user: "{{ postgresql_service_user }}"
+#  become: yes
+#  become_user: "{{ postgresql_service_user }}"
 
 - name: PostgreSQL | Make sure the postgres data directory exists
   file:
@@ -58,25 +77,25 @@
     state: directory
     mode: 0700
   register: pgdata_dir_exist
-  sudo: yes
+  become: true
 - name: PostgreSQL | Ensure the locale is generated
-  sudo: yes
+  become: true
   locale_gen: name={{postgresql_locale}} state=present
 
 #- name: PostgreSQL | Reset the cluster - drop the existing one
 #  shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}
-#  sudo: yes
-#  sudo_user: "{{ postgresql_service_user }}"
+#  become: yes
+#  become_user: "{{ postgresql_service_user }}"
 #  when: postgresql_cluster_reset and pgdata_dir_exist.changed
 
 #- name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
 #  shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
-#  sudo: yes
-#  sudo_user: "{{ postgresql_service_user }}"
+#  become: yes
+#  become_user: "{{ postgresql_service_user }}"
 #  when: postgresql_cluster_reset and pgdata_dir_exist.changed
 
 - name: PostgreSQL | Update configuration - pt. 1 (pg_hba.conf)
-  become: yes
+  become: true
   #become_user: "{{ postgresql_service_user }}"
   template:
     src: pg_hba.conf.j2
@@ -96,12 +115,13 @@
     group: "{{ postgresql_service_group }}"
     mode: 0640
   register: postgresql_configuration_pt2
-  #sudo_user: "{{ postgresql_service_user }}"
-  sudo: yes
+  #become_user: "{{ postgresql_service_user }}"
+  become: true
+  ignore_errors: yes
 
 - name: PostgreSQL | Update configuration - pt. 3 (pgtune)
-  sudo: yes
-  #sudo_user: "{{ postgresql_service_user }}"
+  become: true
+  #become_user: "{{ postgresql_service_user }}"
   shell: |
     set -e
     TMPDIR=$(mktemp -d)
@@ -128,6 +148,7 @@
   when: postgresql_pgtune
   register: postgresql_configuration_pt3
   changed_when: "'_OK_' not in postgresql_configuration_pt3.stdout"
+  ignore_errors: true
 
 - name: PostgreSQL | Create folder for additional configuration files
   file:
@@ -136,17 +157,17 @@
     owner: "{{ postgresql_service_user }}"
     group: "{{ postgresql_service_group }}"
     mode: 0755
-  #sudo_user: "{{ postgresql_service_user }}"
-  sudo: yes
+  #become_user: "{{ postgresql_service_user }}"
+  become: true
 
-- name: PostgreSQL | start PostgreSQL
+- name: PostgreSQL | Rstart PostgreSQL
   service:
     name: postgresql
-    state: started
+    state: restarted
   #when: postgresql_configuration_pt1.changed or #postgresql_configuration_pt2.changed or #postgresql_configuration_pt3.changed
-  sudo: yes
+  become: true
 
 #- name: PostgreSQL | Set root password
 #  shell: "psql -c \"ALTER USER {{ postgresql_admin_user }} PASSWORD '{{ global_postgresql_password }}'\""
-  #sudo_user: postgres
-#  sudo: yes
+  #become_user: postgres
+#  become: true
