@@ -1,0 +1,10 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - name: start cassandra service
+      service: name=cassandra state=started
+
+    - name: waiting for cassandra to start
+      pause: seconds=30
