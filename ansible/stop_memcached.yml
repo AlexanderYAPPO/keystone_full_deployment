@@ -1,0 +1,9 @@
+---
+
+- hosts: "myname_keystone_kong-cache"
+
+  pre_tasks:
+    - name: memcached service
+      service: name=memcached state=restart
+      sudo: yes
+

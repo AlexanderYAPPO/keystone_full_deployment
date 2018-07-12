@@ -346,7 +346,7 @@ postgresql_logging_collector: on
 # These are only used if logging_collector is on:
 
 # Directory where log files are written, can be absolute or relative to PGDATA
-postgresql_log_directory: /home/modis/psgs_log_dir
+postgresql_log_directory: /home/os_user_name/psgs_log_dir
 # Log file name pattern, can include strftime() escapes
 postgresql_log_filename: GIVEMELOGFILEPLS.log
 postgresql_log_file_mode: '0600' # begin with 0 to use octal notation

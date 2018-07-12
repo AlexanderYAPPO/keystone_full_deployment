@@ -1,0 +1,13 @@
+---
+
+- hosts: localhost
+  connection: local
+
+
+  pre_tasks:
+    - name: ssh fix
+      shell: "ssh-keygen -R {{hostvars[groups[ item ][0]].openstack.public_v4}}"
+      with_sequence: start=1 end=32 format={{ cluster_name }}-slave-%d
+      ignore_errors: yes
+      retries: 3
+

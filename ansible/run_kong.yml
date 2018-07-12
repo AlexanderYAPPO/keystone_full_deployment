@@ -1,0 +1,25 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+ 
+    - name: kong migrations
+      shell: kong migrations up -c /etc/kong/kong.conf
+      sudo: yes
+      ignore_errors: yes
+
+
+
+    - name: start kong
+      shell: kong start -c /etc/kong/kong.conf --nginx-conf /etc/kong/nginx_tuned.conf
+      args:
+        chdir: /home/{{global_os_user}}/keystone_plugin/
+      sudo: yes
+
+    - name: tactical pause
+      pause: seconds=4
+
+    - name: init
+      shell: "python /home/{{global_os_user}}/bootstrap.py"
+

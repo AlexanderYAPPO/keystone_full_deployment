@@ -18,15 +18,4 @@
 # limitations under the License.
 #
 
-- name: Create Keystone tenants
-  keystone_user: >
-    tenant="admin"
-    tenant_description="{{ item.description|default('') }}"
-    endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
-    token="{{ keystone_admin_token }}"
-    state="{{ item.state|default('present') }}"
-  register: result
-  until: not result|failed
-  retries: "{{ keystone_api_retries }}"
-  delay: "{{ keystone_api_retries_delay }}"
-  with_items: keystone_tenants
+

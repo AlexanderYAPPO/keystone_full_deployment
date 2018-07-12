@@ -1,6 +1,6 @@
 ---
 
-- hosts: "{{ cluster_name }}-master"
+- hosts: all
 
   tasks:
     - name: umount (mysql)

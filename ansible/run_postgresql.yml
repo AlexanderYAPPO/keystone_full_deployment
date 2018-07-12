@@ -1,5 +1,5 @@
-- hosts: "{{cluster_name}}_master"
-
+- hosts: all
+  gather_facts: no
   roles:
     - role: run_postgresql
       postgresql_admin_user: "postgres"

@@ -1,0 +1,55 @@
+---
+
+- hosts: all
+
+  pre_tasks:
+    - name: Stop cassandra service
+      service: name=cassandra state=stopped
+      sudo: yes
+
+    - name: waiting for cassandra to stop
+      pause: seconds=6
+
+    - name: kill cassandra
+      shell: "kill -9 `pidof java` &> /dev/null"
+      sudo: yes
+      ignore_errors: yes
+      
+    - name: redis-cli flushall
+      shell: "redis-cli flushall"
+      sudo: yes
+
+    - name: resart redis service
+      service: name=cassandra state=restarted
+      sudo: yes
+
+    - name: tactical pause
+      pause: seconds=2
+
+    #- name: earse database
+    #  command: rm -rf /var/lib/cassandra
+    #  sudo: yes
+    #  ignore_errors: yes
+    - name: del db dir
+      file: path=/var/lib/cassandra state=absent
+      sudo: yes
+      ignore_errors: yes
+
+
+    - name: del database logs
+      file: path=/var/log/cassandra state=absent
+      sudo: yes
+
+    - name: del logs
+      file: path=/var/log/cassandra state=directory
+      sudo: yes
+
+    - file:
+        path: /var/log/cassandra
+        owner: "cassandra"#"{{global_os_user}}"
+        group: "cassandra"#"{{global_os_user}}"
+        mode: 0777
+        recurse: yes
+      sudo: yes
+    - name: tactical pause
+      pause: seconds=2

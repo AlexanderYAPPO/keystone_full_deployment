@@ -13,10 +13,10 @@ class AuthenticateKeystoneTest extends Simulation {
 
   val scn = scenario("auth")
       .group("auth") {
-        exec(http("root")
+        exec(http("root").header("Content-Type", "application/json")
         .get("")
         .check(status.is(200)))
-          .exec(http("tokens")
+          .exec(http("tokens").header("Content-Type", "application/json")
             .post("/tokens")
             .body(StringBody(session => setup.randomUserTokensJson))
             .header("Content-Type", "application/json")
