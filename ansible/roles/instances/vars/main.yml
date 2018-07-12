@@ -1,9 +1,9 @@
 #master
-cluster_name: bogomolov_keystone_kong
+cluster_name: myname_keystone_kong
 os_image: Ubuntu 14.04.4 Trusty x86_64 cloud image (248,0 МБ)
 master_flavor: keystone.xlarge
 
-os_key_name: bogomolov_keystone
+os_key_name: myname_keystone
 floating_ip_pool: ispras #isp
 virtual_network: test-two-routers #test
 boot_from_volume:

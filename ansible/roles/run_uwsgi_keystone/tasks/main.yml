@@ -49,14 +49,14 @@
   shell: "{{ keystone_dir }}/venv/bin/keystone-manage fernet_setup"
   #ignore_errors: yes
   when: global_token_provider == "fernet"
-  become: "modis"
+  become: "os_user_name"
 - name: pause
   pause: seconds=7
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
   ignore_errors: yes
-  become: modis
+  become: os_user_name
   #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
 
 #- debug: msg="{{inventory_hostname}}, {{hostvars[inventory_hostname].openstack.private_v4}}"

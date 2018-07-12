@@ -174,10 +174,10 @@ class Runner:
     """
     @staticmethod
     def run_playbook(name, **kwargs):
-        kwargs["cluster_name"] = "bogomolov_keystone"
+        kwargs["cluster_name"] = "myname_keystone"
         #kwargs["n_slaves"] = "32"
         #kwargs["global_db"] = "postgresql"
-        #kwargs["ansible_ssh_private_key_file"] = "~/.ssh/bogomolov_key.key"
+        #kwargs["ansible_ssh_private_key_file"] = "~/.ssh/myname_key.key"
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
         variable_manager = VariableManager()
         loader = DataLoader()
