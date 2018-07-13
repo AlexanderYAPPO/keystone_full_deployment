@@ -171,13 +171,13 @@ class Runner:
 
     @staticmethod
     def run_playbook(name, **kwargs):
-        kwargs["cluster_name"] = "bogomolov_keystone_kong"
+        kwargs["cluster_name"] = "my_name_keystone_kong"
         with open("/home/modis/cur_n.txt", "r") as f:
             txt = f.readline()
         print(txt)
         kwargs["n_slaves"] = txt.replace("\n", "")
         #kwargs["global_db"] = "postgresql"
-        kwargs["ansible_ssh_private_key_file"] = "~/.ssh/bogomolov_key.key"
+        kwargs["ansible_ssh_private_key_file"] = "~/.ssh/my_name_key.key"
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
 
         loader = DataLoader()

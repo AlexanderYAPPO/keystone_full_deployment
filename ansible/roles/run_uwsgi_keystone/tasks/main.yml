@@ -8,7 +8,7 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone-master'][0] }}/keystone"
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name_keystone-master'][0] }}/keystone"
   become: yes
 
 
@@ -44,7 +44,7 @@
   with_items:
     - section: DEFAULT
       option: memcached_servers
-      value: "{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-cache'][0] }}"
+      value: "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-cache'][0] }}"
   become: yes
 - name: Configure Keystone database2
   ini_file: >
@@ -136,7 +136,7 @@
   with_items:
     - section: cache
       option: memcache_servers
-      value: "{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-cache'][0] }}"
+      value: "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-cache'][0] }}"
   become: yes
 - name: Create fernet tokens
   shell: "{{ keystone_dir }}/venv/bin/keystone-manage fernet_setup"
@@ -151,7 +151,7 @@
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
   ignore_errors: yes
   become: modis
-  when: inventory_hostname == "{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-slave-1'][0] }}"
+  when: inventory_hostname == "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-slave-1'][0] }}"
 
 #- debug: msg="{{inventory_hostname}}, {{hostvars[inventory_hostname].openstack.private_v4}}"
 

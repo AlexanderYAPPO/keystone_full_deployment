@@ -1,6 +1,6 @@
 ---
 
-- hosts: "bogomolov_tarantool-rally"
+- hosts: "my_name_tarantool-rally"
 
   pre_tasks:
   - name: stop rally

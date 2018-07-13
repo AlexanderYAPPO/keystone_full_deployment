@@ -1,24 +1,24 @@
-- hosts: bogomolov_keystone_kong_slaves[0:{{n_slaves|int - 1}}]
+- hosts: my_name-cassandra-slaves
 
   tasks:
 
-    - name: example sudo action
-      shell:
-        hostname
-        
-      register: result
-      become: yes
-      become_method: sudo
+    #- name: example sudo action
+    #  shell:
+    #    hostname
+    #    
+    #  register: result
+    #  become: yes
+    #  become_method: sudo
 
     - debug: 
         var: inventory_hostname #hostvars[inventory_hostname]['ansible_default_ipv4']['address'] == "172.31.231.65"
 
-
-    - name: echo authorized ssh-keys
-      shell:
-        cat ~/.ssh/authorized_keys
-      register: result
+    - shell: "echo {{inventory_hostname}} > /home/root/ip.txt"
+    #- name: echo authorized ssh-keys
+    #  shell:
+    #    cat ~/.ssh/authorized_keys
+    #  register: result
     
-    - debug:
-        var: result
+    #- debug:
+    #    var: result
 
