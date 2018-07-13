@@ -1,19 +1,19 @@
 # file: postgresql/tasks/configure.yml
 - name: Stop postgresql
   service: name=postgresql state=stopped
-  become: yes
+  become: true
 - name: PostgreSQL | delete cluster
   shell: pg_dropcluster --stop {{postgresql_version}} {{postgresql_cluster_name}}
-  become: yes
+  become: true
   ignore_errors: yes
 - name: Stop postgresql
   service: name=postgresql state=stopped
-  become: yes
+  become: true
 
 
 - name: Rules
   command: rm -rf /var/lib/postgresql/*
-  become: yes
+  become: true
   ignore_errors: yes
 
 #- name: Rules
@@ -44,27 +44,27 @@
     path: /etc/postgresql
     mode: 0777
     recurse: yes
-  sudo: yes
+  become: true
 
 - name: Change owners
   shell: "chown -R postgres:postgres /var/lib/postgresql"
-  become: yes
+  become: true
 
 - name: Rules
   command: "chown postgres:postgres /etc/postgresql -R"
-  become: yes
+  become: true
 
 
 - name: Change owners
   shell: "chown -R postgres:postgres /etc/postgresql"
-  become: yes
+  become: true
 
 
 
 
 
 - name: PostgreSQL | Reset the cluster - create a new one (with specified encoding and locale)
-  become: yes
+  become: true
   shell: pg_createcluster --start --locale {{postgresql_locale}} -e {{postgresql_encoding}} -d {{postgresql_data_directory}} {{postgresql_version}} {{postgresql_cluster_name}}
 #  become: yes
 #  become_user: "{{ postgresql_service_user }}"
@@ -77,9 +77,9 @@
     state: directory
     mode: 0700
   register: pgdata_dir_exist
-  become: yes
+  become: true
 - name: PostgreSQL | Ensure the locale is generated
-  become: yes
+  become: true
   locale_gen: name={{postgresql_locale}} state=present
 
 #- name: PostgreSQL | Reset the cluster - drop the existing one
@@ -95,7 +95,7 @@
 #  when: postgresql_cluster_reset and pgdata_dir_exist.changed
 
 - name: PostgreSQL | Update configuration - pt. 1 (pg_hba.conf)
-  become: yes
+  become: true
   #become_user: "{{ postgresql_service_user }}"
   template:
     src: pg_hba.conf.j2
@@ -116,11 +116,11 @@
     mode: 0640
   register: postgresql_configuration_pt2
   #become_user: "{{ postgresql_service_user }}"
-  become: yes
+  become: true
   ignore_errors: yes
 
 - name: PostgreSQL | Update configuration - pt. 3 (pgtune)
-  become: yes
+  become: true
   #become_user: "{{ postgresql_service_user }}"
   shell: |
     set -e
@@ -148,7 +148,7 @@
   when: postgresql_pgtune
   register: postgresql_configuration_pt3
   changed_when: "'_OK_' not in postgresql_configuration_pt3.stdout"
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: PostgreSQL | Create folder for additional configuration files
   file:
@@ -158,16 +158,16 @@
     group: "{{ postgresql_service_group }}"
     mode: 0755
   #become_user: "{{ postgresql_service_user }}"
-  become: yes
+  become: true
 
-- name: PostgreSQL | start PostgreSQL
+- name: PostgreSQL | Rstart PostgreSQL
   service:
     name: postgresql
-    state: started
+    state: restarted
   #when: postgresql_configuration_pt1.changed or #postgresql_configuration_pt2.changed or #postgresql_configuration_pt3.changed
-  become: yes
+  become: true
 
 #- name: PostgreSQL | Set root password
 #  shell: "psql -c \"ALTER USER {{ postgresql_admin_user }} PASSWORD '{{ global_postgresql_password }}'\""
   #become_user: postgres
-#  become: yes
+#  become: true

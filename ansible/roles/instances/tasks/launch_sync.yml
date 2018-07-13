@@ -44,19 +44,19 @@
 
 
 
-- name: create HAProxy node
-  os_server:
-    state: present
-    name: "{{ cluster_name }}-HAProxy"
-    image: "{{ os_image }}"
-    flavor: "{{ master_flavor }}"
-    key_name: "{{ os_key_name }}"
-    floating_ip_pools: "{{ floating_ip_pool }}"
-    network: "{{ virtual_network }}"
-    #boot_from_volume: "{{ boot_from_volume }}"
-    security_groups: "{{ cluster_name }}"
-    meta: "hostname={{ cluster_name }}-HAProxy,group={{ cluster_name }}_HAProxy"
-  retries: 3
+#- name: create HAProxy node
+#  os_server:
+#    state: present
+#    name: "{{ cluster_name }}-HAProxy"
+#    image: "{{ os_image }}"
+#    flavor: "{{ master_flavor }}"
+#    key_name: "{{ os_key_name }}"
+#    floating_ip_pools: "{{ floating_ip_pool }}"
+#    network: "{{ virtual_network }}"
+#    #boot_from_volume: "{{ boot_from_volume }}"
+#    security_groups: "{{ cluster_name }}"
+#    meta: "hostname={{ cluster_name }}-HAProxy,group={{ cluster_name }}_HAProxy"
+#  retries: 3
 
 
 # - name: create rally node

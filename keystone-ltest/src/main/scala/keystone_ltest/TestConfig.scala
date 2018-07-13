@@ -17,10 +17,10 @@ object TestConfig {
   assert(authConf.context.users.tenants == 1)
   val users = authConf.context.users.users_per_tenant
 
-  val OS_AUTH_URL = Option(System.getenv("OS_AUTH_URL")).getOrElse("http://127.0.0.1:35357/v2.0")
-  val OS_TENANT_NAME = Option(System.getenv("OS_TENANT_NAME")).getOrElse("admin")
+  val OS_AUTH_URL = Option(System.getenv("OS_AUTH_URL")).getOrElse("http://1:35357/v3")
+  //val OS_TENANT_NAME = Option(System.getenv("OS_TENANT_NAME")).getOrElse("admin")
   val OS_USERNAME = Option(System.getenv("OS_USERNAME")).getOrElse("admin")
-  val OS_PASSWORD = Option(System.getenv("OS_PASSWORD")).getOrElse("admin")
+  val OS_PASSWORD = Option(System.getenv("OS_PASSWORD")).getOrElse("tester")
 }
 
 case class AuthConf(runner: RunnerConf, context: ContextConf)

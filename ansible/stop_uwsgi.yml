@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: "{{cluster_name}}_slaves"
 
   pre_tasks:
     - name: Stop nginx
@@ -10,11 +10,4 @@
       shell: "kill -9 `pidof uwsgi` &> /dev/null"
       sudo: yes
       ignore_errors: yes
-      
-    - name: restart memcached
-      service: name=memcached state=restarted
 
-    - name:  Delete fernet
-      file: path=/etc/keystone/fernet-keys state=absent
-      sudo: yes
-      ignore_errors: yes

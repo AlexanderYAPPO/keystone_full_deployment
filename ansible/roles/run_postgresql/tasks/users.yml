@@ -5,6 +5,7 @@
   service:
     name: "postgresql"
     state: restarted
+  become: true
 
 - name: PostgreSQL | Create users
   postgresql_user:

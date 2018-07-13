@@ -1,11 +1,11 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}_slaves"
 
   roles:
     - role: run_uwsgi_keystone
       keystone_dir: /home/{{ global_os_user }}/keystone
-      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
+      keystone_database_url: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name_keystone-master'][0] }}/keystone"
       keystone_admin_token: "{{ global_keystone_token }}"
       keystone_admin_port: 35357
       keystone_port: 5000

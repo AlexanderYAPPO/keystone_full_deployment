@@ -1,5 +1,5 @@
-- hosts: all
-  gather_facts: no
+- hosts: "my_name_keystone-master"
+
   roles:
     - role: run_postgresql
       postgresql_admin_user: "postgres"

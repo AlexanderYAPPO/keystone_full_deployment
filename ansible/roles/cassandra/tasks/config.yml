@@ -1,0 +1,8 @@
+---
+
+- name: copy Cassandra config
+  become: yes
+  template: src=cassandra.yaml.j2 dest="/opt/{{ cassandra_dir}}/conf/cassandra.yaml"
+
+- name: set user and priviliges on Cassandra
+  file: path="/opt/{{ cassandra_dir}}" owner={{ ansible_user }} group={{ ansible_user }} recurse=yes

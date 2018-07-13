@@ -1,3 +1,7 @@
+- shell: "chmod 700 /var/log/keystone/admin.log"
+  become: true
+- shell: "chown {{ global_os_user }}:{{ global_os_user }} /var/log/keystone/admin.log"
+  become: true
 - name: Configure Keystone database
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -7,8 +11,30 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] }}/keystone"
   become: yes
+- name: Sync Keystone database
+  command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
+  ignore_errors: yes
+  when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
+
+#- debug: msg="{{inventory_hostname}}, {{hostvars[inventory_hostname].openstack.private_v4}}"
+
+- include: run_apache.yml
+
+- pause: seconds=2
+
+- name: Configure Keystone database
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: database
+      option: connection
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] }}/keystone"
+  become: true
 
 
 - name: Configure token
@@ -21,7 +47,7 @@
     - section: token
       option: provider
       value: "{{ global_token_provider }}"
-  become: yes
+  become: true
 - name: Configure fernet tokens directory
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -38,12 +64,12 @@
   shell: "{{ keystone_dir }}/venv/bin/keystone-manage fernet_setup"
   #ignore_errors: yes
   when: global_token_provider == "fernet"
-  become: "os_user_name"
+  become: "modis"
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
   ignore_errors: yes
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
+  when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
 
 
 - include: run_apache.yml
@@ -52,4 +78,5 @@
 
 
 - name: bootstrap fix
-  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://10.10.10.10:35357/v3 --bootstrap-public-url http://10.10.10.10:5000/v3 --bootstrap-internal-url http://10.10.10.10:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-internal-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+  when: inventory_hostname == groups[cluster_name + '-slave-1'][0]

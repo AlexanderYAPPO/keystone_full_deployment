@@ -19,7 +19,7 @@ import site
 name = os.path.basename(__file__)
 
 # Change environment for applications running via wsgi to venv
-activate_this = os.path.expanduser("/home/ubuntu/keystone/venv/bin/activate_this.py")
+activate_this = os.path.expanduser("/home/modis/keystone/venv/bin/activate_this.py")
 execfile(activate_this, dict(__file__ = activate_this))
 
 from keystone.server import wsgi as wsgi_server

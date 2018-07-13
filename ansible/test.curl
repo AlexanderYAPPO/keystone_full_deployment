@@ -1,0 +1,32 @@
+curl --request POST \
+  --url http://localhost/v3/auth/tokens \
+  --header 'content-type: application/json' \
+  --header 'x-auth-token: gAAAAABa4LwBgsLEg-s5sBlKM3NVUeiALSN7K1w0M5-9ma_veesS2L3Af2JrdBFllCM-QZ0aaItuYenUABmrpGUlFGfgnj84XiM4byISLEgPvmOT8z8Fjs9Jb-QnaGvWEHUCwR8US43s' \
+  --data '{
+	                "auth": {
+		                "scope": {
+			                "project": {
+				                "domain": {
+					                "name": "Default"
+				                },
+				                "name": "admin"
+			                }
+		                },
+		                "identity": {
+			                "password": {
+				                "user": {
+					                "domain": {
+						                "name": "Default"
+					                },
+					                "password": "tester",
+					                "name": "admin"
+				                }
+			                },
+			                "methods": [
+				                "password"
+			                ]
+		                }
+	                }
+                }
+
+ '

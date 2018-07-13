@@ -1,25 +1,37 @@
 ---
 
-- hosts: all
-
+- hosts: "my_name_keystone_kong_slaves[0:{{n_slaves|int - 1}}]"
   pre_tasks:
- 
-    - name: kong migrations
-      shell: kong migrations up -c /etc/kong/kong.conf
-      sudo: yes
+
+
+
+    - name: kong migrations 3
+      shell: kong migrations reset && kong migrations up -c /etc/kong/kong.conf
+#      sudo: yes
+#      ignore_errors: yes
+      args:
+        chdir: /home/{{global_os_user}}/keystone_plugin/
+      when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
+      retries: 500
+      delay: 0
+      register: task_result
+      until: task_result.rc == 0
+      become: modis
       ignore_errors: yes
 
-
+    - name: waiting for kong to start
+      pause: seconds=5 # 5
 
     - name: start kong
       shell: kong start -c /etc/kong/kong.conf --nginx-conf /etc/kong/nginx_tuned.conf
+
       args:
         chdir: /home/{{global_os_user}}/keystone_plugin/
       sudo: yes
 
     - name: tactical pause
-      pause: seconds=4
+      pause: seconds=6
 
     - name: init
-      shell: "python /home/{{global_os_user}}/bootstrap.py"
-
+      shell: "/home/{{global_os_user}}/reqvenv/bin/python /home/{{global_os_user}}/bootstrap_fernet.py"
+      when: inventory_hostname == groups[cluster_name + '-slave-1'][0]

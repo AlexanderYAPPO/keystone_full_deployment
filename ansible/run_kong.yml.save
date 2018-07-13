@@ -1,0 +1,21 @@
+---
+
+- hosts: "{{ cluster_name }}-slave-4"
+
+  pre_tasks:
+    - name: Make keystone
+      shell: luarocks make kong-plugin-keystone-0.1.0-1.rockspec
+      args:
+        chdir: /home/ubuntu/keystone_plugin/
+      sudo: yes
+ 
+    - name: kong migrations
+      shell: kong migrations up -c /etc/kong/kong.conf
+      sudo: yes
+      ignore_errors: yes
+
+    - name: start kong
+      shell: kong start -c /etc/kong/kong.conf
+ 	      args:
+        chdir: /home/ubuntu/keystone_plugin/
+      sudo: yes

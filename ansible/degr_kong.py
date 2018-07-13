@@ -79,6 +79,7 @@ class DegradationCheck:
                 }
             }
             }]}
+
         with open(self.home_dir + "/nfind.json", 'wb') as outfile:
             dump(task_dict, outfile)
 
@@ -133,6 +134,7 @@ class DegradationCheck:
         print "="*10
         self.create_dir(self.results_dir)
         id, json_data = self.get_results(rps)
+
         ###if not id:
         ###    return True
         #self.id_dict[rps] = id

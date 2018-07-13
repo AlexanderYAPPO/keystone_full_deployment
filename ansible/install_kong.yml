@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}_slaves"
   roles:
     - role: install_kong
       

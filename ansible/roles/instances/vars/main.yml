@@ -1,9 +1,9 @@
 #master
-cluster_name: myname_keystone_kong
-os_image: Ubuntu 14.04.4 Trusty x86_64 cloud image (248,0 МБ)
+cluster_name: my_name_keystone_kong
+os_image: a9ccbaf6-a504-46eb-9329-5baee99e8fc8  #Ubuntu 14.04.4 Trusty x86_64 cloud image (248,0 МБ)
 master_flavor: keystone.xlarge
 
-os_key_name: myname_keystone
+os_key_name: my_name_tarantool
 floating_ip_pool: ispras #isp
 virtual_network: test-two-routers #test
 boot_from_volume:

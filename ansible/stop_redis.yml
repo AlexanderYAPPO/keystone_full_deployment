@@ -1,0 +1,16 @@
+---
+
+- hosts: "my_name_keystone_kong-cache"
+
+  pre_tasks:
+
+
+    - name: Restart redis
+      service: name=redis-server state=restarted
+      sudo: yes
+      ignore_errors: yes
+
+    - name: redis flushall
+      shell: redis-cli flushall
+      sudo: yes
+      ignore_errors: yes

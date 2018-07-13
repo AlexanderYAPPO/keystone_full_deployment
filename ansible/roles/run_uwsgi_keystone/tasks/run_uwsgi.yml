@@ -2,6 +2,13 @@
   template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
   sudo: yes
 
+- name: Copy keystone-paste.ini
+  copy: src=keystone-paste.ini dest=/etc/keystone/keystone-paste.ini owner={{ global_os_user }}
+
+- name: Deploy policy.json file
+  copy: src=policy.json dest=/etc/keystone/policy.json owner={{ global_os_user }}
+
+
 - name: Remove default config
   shell: "rm -rf /etc/nginx/sites-enabled/*"
   become: yes
@@ -38,7 +45,7 @@
 
 
 - name: Running Keystone over uWSGI #only admin supported so far
-  shell: "source {{ keystone_dir }}/venv/bin/activate; {{ keystone_dir }}/venv/bin/uwsgi --ini /tmp/uwsgi-keystone-admin.ini --daemonize2 /dev/null -L"
+  shell: " {{ keystone_dir }}/venv/bin/uwsgi --enable-threads --ini /tmp/uwsgi-keystone-admin.ini --daemonize2 /dev/null -L"
   with_items:
     - 'admin'
   #  - 'main'
@@ -47,7 +54,13 @@
   service: name=nginx state=restarted
   sudo: yes
 
-- name: bootstrap fix
-  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://10.10.10.10:35357/v3 --bootstrap-public-url http://10.10.10.10:5000/v3 --bootstrap-internal-url http://10.10.10.10:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+- shell: "{{ keystone_dir }}/venv/bin/pip install python-memcached"
+
+- shell: "{{ keystone_dir }}/venv/bin/pip install psycopg2-binary"
+
+- name: bootstrap
+  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-internal-url http://{{hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+  when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
+
 
 
