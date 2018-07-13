@@ -1,8 +1,8 @@
 #master
-cluster_name: myname_keystone
+cluster_name: my_name_keystone
 os_image: c0120ee0-ed38-4135-bf38-f51bafe289c5
 master_flavor: spark.xlarge
-os_key_name: myname_key
+os_key_name: my_name_key
 floating_ip_pool: ispras
 virtual_network: 33fcedfa-b69b-45dd-a9f7-8b72d58669aa
 #boot_from_volume: c0120ee0-ed38-4135-bf38-f51bafe289c5

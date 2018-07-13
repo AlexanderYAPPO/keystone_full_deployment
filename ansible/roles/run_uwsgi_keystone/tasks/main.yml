@@ -1,3 +1,4 @@
+
 - name: Configure Keystone database
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -7,10 +8,44 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@localhost/keystone"
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name_keystone-master'][0] }}/keystone"
   become: yes
 
 
+- name: Configure password_hash_algorithm
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: identity
+      option: password_hash_algorithm
+      value: "bcrypt"
+  become: yes
+- name: Configure password_hash_algorithm
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: identity
+      option: password_hash_rounds
+      value: "4"
+  become: yes
+
+- name: Configure DEFAULT section
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: DEFAULT
+      option: memcached_servers
+      value: "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-cache'][0] }}"
+  become: yes
 - name: Configure Keystone database2
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -22,6 +57,10 @@
       option: verbose
       value: "false"
   become: yes
+
+
+
+
 - name: Configure token
   ini_file: >
     dest=/etc/keystone/keystone.conf
@@ -43,21 +82,76 @@
     - section: fernet_tokens
       option: key_repository
       value: "/etc/keystone/fernet-keys/"
-  when: global_token_provider == "fernet"
+  become: yes
+- name: Configure cache section option "enable"
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: cache
+      option: enabled
+      value: "True" # True
+  become: yes
+- name: Configure cache section option "config_prefix"
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: cache
+      option: config_prefix
+      value: "cache.keystone"
+  become: yes
+- name: Configure cache section option "expiration_time"
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: cache
+      option: expiration_time
+      value: 300
+  become: yes
+- name: Configure cache section option "backend"
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: cache
+      option: backend
+      value: "dogpile.cache.memcached"
+  become: yes
+- name: Configure cache section option "memcache_servers"
+  ini_file: >
+    dest=/etc/keystone/keystone.conf
+    section="{{ item.section }}"
+    option="{{ item.option }}"
+    value="{{ item.value }}"
+  with_items:
+    - section: cache
+      option: memcache_servers
+      value: "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-cache'][0] }}"
   become: yes
 - name: Create fernet tokens
   shell: "{{ keystone_dir }}/venv/bin/keystone-manage fernet_setup"
   #ignore_errors: yes
   when: global_token_provider == "fernet"
-  become: "os_user_name"
+  become: "modis"
+  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
 - name: pause
   pause: seconds=7
 
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
   ignore_errors: yes
-  become: os_user_name
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
+  become: modis
+  when: inventory_hostname == "{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-slave-1'][0] }}"
 
 #- debug: msg="{{inventory_hostname}}, {{hostvars[inventory_hostname].openstack.private_v4}}"
 
@@ -65,11 +159,3 @@
 
 - pause: seconds=5
 
-- include: endpoints.yml
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
-- include: tenants.yml
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
-- include: users.yml
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
-- include: roles.yml
-  #when: inventory_hostname == groups[cluster_name + '-slave-1'][0]

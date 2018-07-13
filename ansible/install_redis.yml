@@ -1,0 +1,8 @@
+---
+
+- hosts: "{{ cluster_name }}-cache"
+  roles:
+    - role: install_redis
+      redis_port: 6379
+      redis_password: 
+

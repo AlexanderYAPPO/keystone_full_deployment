@@ -12,4 +12,4 @@ global_os_user: os_user_name
 global_postgresql_password: tester
 global_skip: False
 global_db: postgresql
-global_token_provider: uuid
+global_token_provider: fernet

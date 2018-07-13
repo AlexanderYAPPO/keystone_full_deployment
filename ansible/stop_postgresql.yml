@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: "my_name_keystone-master"
 
   pre_tasks:
     - name: Stop postgresql

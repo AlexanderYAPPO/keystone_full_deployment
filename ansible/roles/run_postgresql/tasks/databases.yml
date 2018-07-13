@@ -15,7 +15,7 @@
   service:
     name: postgresql
     state: started
-
+  become: true
 #- name: PostgreSQL | Add hstore to the databases with the requirement
 #  sudo: yes
 #  sudo_user: "{{ postgresql_service_user }}"

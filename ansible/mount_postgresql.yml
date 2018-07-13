@@ -1,6 +1,6 @@
 ---
 
-- hosts: all
+- hosts: "my_name_keystone-master"
 
   pre_tasks:
     - mount: name="/var/lib/postgresql/" src={{hardware_src}} fstype={{hardware_type}} state=mounted
@@ -10,6 +10,6 @@
     - shell: "rm -rf /var/lib/postgresql/*"
       sudo: yes
       ignore_errors: yes
-    - shell: "rm -rf /var/log/mysql/*"
+    - shell: "rm -rf /var/log/postgresql/*"
       sudo: yes
       ignore_errors: yes

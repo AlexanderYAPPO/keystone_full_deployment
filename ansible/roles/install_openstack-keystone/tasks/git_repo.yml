@@ -1,5 +1,5 @@
 - name: install dependencies
-  apt: name="{{ item }}" state=present update_cache=yes
+  apt: name="{{ item }}" state=present update_cache=no
   with_items:
     - build-essential
     - libssl-dev
@@ -7,21 +7,25 @@
     - python-dev
     - libmariadbclient-dev
     - git
-  sudo: yes
+  become: true  
 
 - name: download pip installation script
   get_url: url=https://bootstrap.pypa.io/get-pip.py dest=~
   sudo: yes
 - name: install pip
   command: "python ~/get-pip.py"
-  sudo: yes
+  become: true
+
+#- name: rm rf#download pip installation script
+#  shell: rm -rf /home/modis/keystone
+#  sudo: yes
 
 - name: clone keystone
-  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes version='cf9ebb4d0fc122f9a06188ab06b6523959ec654f'
+  git: repo=https://github.com/openstack/keystone.git dest={{ keystone_dir }} clone=yes version='847676854572e0c36535048b731f966590adb746'
 
 - name: install virtualenv
   pip: name=virtualenv
-  sudo: yes
+  become: true
 
 - name: create virtual env
   command: "virtualenv {{ keystone_dir }}/venv"

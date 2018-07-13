@@ -1,12 +1,17 @@
 ---
 
-- hosts: all
+- hosts: "{{ cluster_name }}_slaves" 
 
   pre_tasks:
-    - name: Stop kong
+    - name : Stop kong gentle    
+      shell: "kong stop"
+      sudo: yes
+      ignore_errors: yes
+
+    - name: Stop kong force
       shell: "kill -9 `pidof nginx` &> /dev/null"
       sudo: yes
       ignore_errors: yes
-    - shell: "rm /usr/local/kong/logs/*"
-      sudo: yes
-      ignore_errors: yes
+#    - shell: "rm /usr/local/kong/logs/*"
+#      sudo: yes
+#      ignore_errors: yes

@@ -13,14 +13,14 @@ class AuthenticateKeystoneTest extends Simulation {
 
   val scn = scenario("auth")
       .group("auth") {
-        exec(http("root").header("Content-Type", "application/json")
+        exec(http("root")
         .get("")
         .check(status.is(200)))
-          .exec(http("tokens").header("Content-Type", "application/json")
-            .post("/tokens")
+          .exec(http("tokens")
+            .post("/auth/tokens")
             .body(StringBody(session => setup.randomUserTokensJson))
             .header("Content-Type", "application/json")
-            .check(status.is(200)))
+            .check(status.is(201)))
     }
 
   TestConfig.authConf.runner.`type` match {

@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 #from ansible.playbook import PlayBook
 #from ansible import callbacks
 #from ansible import utils
-from degr import DegradationCheck
+from degr_kong import DegradationCheck
 from getpass import getuser
 import os
 import sys
@@ -13,13 +13,15 @@ from ansible.parsing.dataloader import DataLoader
 from ansible.vars import VariableManager
 from ansible.inventory import Inventory
 from ansible.executor.playbook_executor import PlaybookExecutor
-
-WEB_SERVERS = [ "uwsgi"] # "apache"
-BACKENDS = ["postgresql"]#, "mysql"]  # database type
+inventory = None
+variable_manager = None
+WEB_SERVERS = ["uwsgi"]
+BACKENDS = ["postgresql"]  # database type
 HARDWARE_LIST = (
+    #"HDD",
     #"/dev/sdb1",  # SSD
     "tmpfs",  # overlay
-    #"/dev/sda7",  # HDD
+    #"/dev/sda7"  # HDD
     )
 
 
@@ -46,11 +48,11 @@ class Generator:
         self.gen_list = []
         if act == "install":
             new_list = [
-                #Task("install", "postgresql", Extra()),
-                Task("install", "mysql", Extra()),
-                #Task("install", "keystone", Extra()),
+                Task("install", "postgresql", Extra()),
+                #Task("install", "mysql", Extra()),
+                Task("install", "keystone", Extra()),
                 #Task("install", "apache", Extra()),
-                #Task("install", "uwsgi", Extra()),
+                Task("install", "uwsgi", Extra()),
                 #Task("install", "rally", Extra()),
                 #Task("install", "mock", Extra())
                 ]
@@ -60,26 +62,46 @@ class Generator:
             for database in BACKENDS:
                 for web_server in WEB_SERVERS:
                     for hardware in HARDWARE_LIST:
-
                         new_list = [
+                            Task("stop", "kong", Extra()),
+             
+                            Task("stop", "uwsgi", Extra()),
+                            Task("stop", "redis", Extra()),
+                            Task("stop", "postgresql", Extra()),
+                            Task("stop", "cassandra", Extra()),
+                            Task("umount", hardware, Extra(database)),
+                            #Task("mount", hardware, Extra(database)),
+                            Task("stop", "postgresql", Extra()),
+                            Task("run", "cassandra", Extra()),
+                            Task("run", "kong", Extra()),
+                            #Task("stop", "tarantool", Extra()),
                             #Task("stop", "rally", Extra()),
-                            Task("stop", database, Extra()),
-                            Task("stop", web_server, Extra()),
-                            Task("mount", hardware, Extra(database)),
-                            Task("run", database, Extra(database)),
-                            Task("run", web_server, Extra(database)),
-                            Task("func", "tests", Extra(database,
-                                                        hardware,
-                                                        web_server,
-                                                        1,
-                                                        120
-                                                        )),
-                            Task("stop", web_server, Extra()),
-                            Task("stop", database, Extra()),
-                            Task("umount", database, Extra(database))
+                            #Task("run_instances", web_server, Extra()),
+                            #Task("stop", web_server, Extra()),
+                            #Task("stop", database, Extra()),
+                            #Task("stop", "apache", Extra()),
+                            #Task("umount", "mysql", Extra()),
+                            #Task("umount", "postgresql", Extra()),
+                            #Task("umount", "postgresql", Extra(database)),
+                            #Task("mount", hardware, Extra(database)),
+                            #Task("install", "postgresql", Extra()),
+                            #Task("install", "uwsgi", Extra()),
+                            #Task("install", "keystone", Extra()),
+                            #Task("run", database, Extra(database)),
+
+                            #Task("run", web_server, Extra(database)),
+                            #Task("run", "inittarantool", Extra(database)),
+                            ##Task("func", "tests", Extra(database,
+                            ##                            hardware,
+                            ##                           web_server,
+                            ##                           1,
+                            ##                            500
+                            ##                            )),
+                            ###Task("stop", web_server, Extra()),
+                            ##Task("stop", database, Extra()),
+                            #T#ask("umount", database, Extra(database))
 #                           # Task("stop", "rally", Extra())
                             ]
-
                         self.gen_list.append(new_list)
 
         elif act == "mock":
@@ -88,7 +110,7 @@ class Generator:
                 Task("func", "tests", Extra("flask",
                                             "flask",
                                             "flask",
-                                            1,
+                                            199,
                                             1200,
                                             )),
                 Task("stop", "mock", Extra()),
@@ -131,60 +153,41 @@ class Runner:
         elif action == "run":
             if name in WEB_SERVERS:
                 Runner.run_playbook("%s_%s" % (action, name),
-                                    global_database=extra.database)
+                                    global_db=extra.database)
             else:
                 Runner.run_playbook("%s_%s" % (action, name))
         elif action == "func":
             if name == "tests":
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server)
-                res = d.is_degradation(rps)
+                isdeg = d.is_degradation(rps)
                 d.save_results(rps)
-                return res
+                return isdeg#d.is_degradation(rps)
             elif name == "save":
                 d = DegradationCheck(extra.hardware, extra.database,
                                      extra.web_server)
                 d.is_degradation(rps)
                 d.save_results(rps)
-    """
+
     @staticmethod
     def run_playbook(name, **kwargs):
-        utils.VERBOSITY = 0
-        playbook_cb = callbacks.PlaybookCallbacks(verbose=utils.VERBOSITY)
-        stats = callbacks.AggregateStats()
-        runner_cb = callbacks.PlaybookRunnerCallbacks(stats,
-                                                      verbose=utils.VERBOSITY)
-        ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
-        pb = PlayBook(
-            playbook='%s/%s.yml' % (ansible_dir, name),
-            host_list="%s/hosts" % ansible_dir,
-            remote_user=_user,
-            callbacks=playbook_cb,
-            runner_callbacks=runner_cb,
-            stats=stats,
-            private_key_file='/home/%s/.ssh/id_rsa' % getuser(),
-            become=True,
-            become_pass="%s\n" % _password,
-            become_method='sudo',
-            extra_vars=kwargs
-        )
-        results = pb.run()
-        playbook_cb.on_stats(pb.stats)
-        return results
-    """
-    @staticmethod
-    def run_playbook(name, **kwargs):
-        kwargs["cluster_name"] = "myname_keystone"
-        #kwargs["n_slaves"] = "32"
+        kwargs["cluster_name"] = "my_name_keystone_kong"
+        with open("/home/modis/cur_n.txt", "r") as f:
+            txt = f.readline()
+        print(txt)
+        kwargs["n_slaves"] = txt.replace("\n", "")
         #kwargs["global_db"] = "postgresql"
-        #kwargs["ansible_ssh_private_key_file"] = "~/.ssh/myname_key.key"
+        kwargs["ansible_ssh_private_key_file"] = "~/.ssh/my_name_key.key"
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
-        variable_manager = VariableManager()
+
         loader = DataLoader()
-
-        inventory = Inventory(loader=loader, variable_manager=variable_manager,  host_list="%s/hosts" % ansible_dir)
+        global variable_manager
+        global inventory
+        if inventory is None:
+            variable_manager = VariableManager()
+            inventory = Inventory(loader=loader, variable_manager=variable_manager,  host_list="%s/openstack_inventory.py" % ansible_dir)
+            variable_manager.set_inventory(inventory)
         playbook_path = '/home/%s/keystone_full_deployment/ansible/%s.yml' % (getuser(), name)
-
         if not os.path.exists(playbook_path):
             print '[INFO] The playbook does not exist'
             sys.exit()
@@ -242,7 +245,7 @@ def save_n(cnf, n):
         f.write("N=%s\n" % (n))
 
 def save_func(n, cur_config):
-    for rps in (n,):#for rps in (n, n - 1, n-2, n + 1, n + 3, n + 5, 2 * n):
+    for rps in (n, n-1, n-2, n-3 , n+1, n+3):#, n-1, n-2, n+1, n+3):#for rps in (n, n - 1, n-2, n + 1, n + 3, n + 5, 2 * n):
         for obj in cur_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), rps)
@@ -251,6 +254,10 @@ def save_func(n, cur_config):
             else:
                 Runner.run(obj)
 
+def save_without_run(n, cur_config):
+    for obj in cur_config:
+        if obj.name == "tests":
+            save_n(obj.extra, n)
 
 def bin_search(cur_config):
     result = 0
@@ -282,9 +289,9 @@ def main():
         if _parse_result.mock:
             run_type = "mock"
         run_gen = Generator(run_type)
-        """
+        #"""
         next_config = run_gen.next()
-        n = 10
+        n = 500
         for obj in next_config:
             if obj.name == "tests":
                 Runner.run(Task("func", "save", obj.extra), n)
@@ -297,8 +304,9 @@ def main():
             print "="*10
             print "N = %s" % n
             print "="*10
-            save_func(n, next_list)
-        #"""
+            #save_func(n, next_list)
+            save_without_run(n, next_list)
+        """
 if __name__ == "__main__":
     _parser = arg_parser()
     _parse_result = _parser.parse_args()
@@ -313,4 +321,5 @@ if __name__ == "__main__":
         print "="*10
         for service in BACKENDS + WEB_SERVERS:
             Runner().run(Task("stop", service, Extra()))
+
 

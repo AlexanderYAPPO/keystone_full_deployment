@@ -9,46 +9,70 @@ import org.slf4j.LoggerFactory
 import scala.util.{Failure, Success, Try}
 
 class AuthKeystoneSetup {
+  println("setup")
+  val tenantName = "admin"
+  val tenantId = "admin"
   val log = LoggerFactory.getLogger(this.getClass)
   val httpClient = new DefaultAsyncHttpClient
 
+
   import TestConfig._
 
-  def tokensJson(tenantName: String, username: String, password: String) =
+  def tokensJson(username: String, password: String, domainName: String, projectName: String) =
     s"""
        |{
-       |   "auth":{
-       |      "tenantName":"$tenantName",
-       |      "passwordCredentials":{
-       |         "username":"$username",
-       |         "password":"$password"
-       |      }
-       |   }
+       |   "auth":{  
+       |    "scope":{  
+       |       "project":{  
+       |          "domain":{  
+       |             "name":"$domainName"
+       |          },
+       |          "name":"$projectName"
+       |       }
+       |    },
+       |    "identity":{  
+       |       "password":{  
+       |          "user":{ 
+       |             "domain":{  
+       |                "name":"$domainName"
+       |             },
+       |             "password":"$password",
+       |             "name":"$username"
+       |          }
+       |       },
+       |       "methods":[  
+       |          "password"
+       |       ]
+       |    }
+       | }
        |}
        |
      """.stripMargin
-
+    
   val tokensResp = reqWithRetry(new RequestFactory {
-    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tokens")
-      .setBody(tokensJson(OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD))
+    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/auth/tokens")
+      .setBody(tokensJson("admin", OS_PASSWORD, "Default", "admin"))
       .setHeader("Content-Type", "application/json")
       .execute().get()
     override def name: String = "get auth token"
   }).get
-  assert(tokensResp.getStatusCode == 200)
-  val tokens = Json.parseStr[Json.TokensResp](tokensResp.getResponseBody)
-  val authToken = tokens.access.token.id
+  assert(tokensResp.getStatusCode == 201)
+  //val tokens = Json.parseStr[Json.TokensResp](tokensResp.getHeaders)
+  val authToken = tokensResp.getHeader("X-Subject-Token")
 
-  def tenantsJson(name: String) =
-    s"""
-       |{
-       |   "tenant":{
-       |      "enabled":true,
-       |      "name":"$name",
-       |      "description":null
-       |   }
-       |}
-     """.stripMargin
+  //val domainIdResp = reqWithRetry(new RequestFactory {
+  //  override def newResp: Response = httpClient.prepareGet(TestConfig.OS_AUTH_URL + "/domains/admin")
+  //    //.setBody(tokensJson(OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD))
+  //    .setHeader("X-Auth-Token", authToken)
+  //    .execute().get()
+  //  override def name: String = "get domain id"
+  //}).get
+  //assert(domainIdResp.getStatusCode == 200)
+  //val domainBody = Json.parseStr[Json.DomainsResp](domainIdResp.getResponseBody)
+  val domainId = "default"//domainBody.domain.id
+  val domainName = "Default" //domainBody.domain.name
+  //val authToken = tokensResp.getHeader("X-Subject-Token")
+  
 
   val rnd = new Random
   val alphanumChars = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).mkString("")
@@ -63,64 +87,110 @@ class AuthKeystoneSetup {
     }
     new String(chars)
   }
+  
+  val projectName = s"c_rally_${rndStr(8)}_${rndStr(8)}"
+  def projectsJson(projectName: String, domainId: String) =
+    s"""
+       |{  
+       | "project":{  
+       | "enabled":true,
+       | "domain_id":"$domainId",
+       | "name":"$projectName"
+       | }
+       | }
+     """.stripMargin
 
-  val tenantName = s"c_rally_${rndStr(8)}_${rndStr(8)}"
-
-  val tenantsResp = reqWithRetry(new RequestFactory {
-    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/tenants")
-      .setBody(tenantsJson(tenantName))
+  val projectResp = reqWithRetry(new RequestFactory {
+    override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/projects")
+      .setBody(projectsJson(projectName, domainId))
       .addHeader("Content-Type", "application/json")
       .addHeader("X-Auth-Token", authToken)
       .execute().get()
-    override def name: String = "create tenant"
+    override def name: String = "create project"
   }).get
-  assert(tenantsResp.getStatusCode == 200)
-  val tenantId = Json.parseStr[Json.TenantsResp](tenantsResp.getResponseBody).tenant.id
+  assert(projectResp.getStatusCode == 201)
+  val projectId = Json.parseStr[Json.ProjectsResp](projectResp.getResponseBody).project.id
 
-  log.info(s"added tenant $tenantName, id=$tenantId")
+
+  //log.info(s"added tenant $tenantName, id=$tenantId")
 
   def addUser = {
     val name = s"c_rally_${rndStr(8)}_${rndStr(8)}"
     val pass = rndStr(34)
-    val req =
+    def req(projectId: String, domainId: String) =
       s"""
          |{
          |   "user":{
-         |      "email":"$name@email.me",
          |      "password":"$pass",
          |      "enabled":true,
+         |       "default_project_id": "$projectId",
          |      "name":"$name",
-         |      "tenantId":"${tenantId}"
+         |      "domain_id":"$domainId"
          |   }
          |}
        """.stripMargin
     val resp = reqWithRetry(new RequestFactory {
       override def newResp: Response = httpClient.preparePost(TestConfig.OS_AUTH_URL + "/users")
-        .setBody(req)
+        .setBody(req(projectId, domainId))
         .setHeader("Content-Type", "application/json")
         .setHeader("X-Auth-Token", authToken)
         .execute().get()
 
       override def name: String = "create user"
     }).get
-    assert(resp.getStatusCode == 200)
+    assert(resp.getStatusCode == 201)
+    println("^^^^^^^^^^^^^")
     val res = Json.parseStr[Json.UsersResp](resp.getResponseBody).user
-    assert(res.name == name)
-    assert(res.username == name)
+    println("****************")
+    //assert(res.name == name)
+    //assert(res.username == name)
 
-    log.info(s"added user $name in tenant $tenantId")
-
-    User(name, pass, res.id)
+    //log.info(s"added user $name in tenant $tenantId")
+    println(name, pass, res.id, domainName, projectName, projectId)
+    val current_user = User(name, pass, res.id, domainName, projectName, projectId)
+    giveRole(current_user)
+    current_user
   }
 
+ def giveRole(user: User) = {
+    val roleIdResp = reqWithRetry(new RequestFactory {
+    override def newResp: Response = httpClient.prepareGet(TestConfig.OS_AUTH_URL + "/roles")
+      //.setBody(tokensJson(OS_TENANT_NAME, OS_USERNAME, OS_PASSWORD))
+      .setHeader("X-Auth-Token", authToken)
+      .execute().get()
+    override def name: String = "get role id"
+    }).get
+    assert(roleIdResp.getStatusCode == 200)
+    val roleBody = Json.parseStr[Json.RolesResp](roleIdResp.getResponseBody)
+    var roleId = roleBody.roles(0).id  
+    println(roleBody.roles(0).name)   
+    if (roleBody.roles(0).name == "member"){
+        roleId = roleBody.roles(1).id
+        println(roleBody.roles(1).name) 
+    }
+    
+    val resp = reqWithRetry(new RequestFactory {
+      override def newResp: Response = httpClient.preparePut(TestConfig.OS_AUTH_URL + "/projects/" + user.projectId + "/users/" + user.id + "/roles/" + roleId)
+        .setHeader("X-Auth-Token", authToken)
+        .execute().get()
+
+      override def name: String = "give role to user"
+    }).get
+    assert(resp.getStatusCode == 204)
+    }
+
+  println("####################")
   val users = (1 to TestConfig.users).map(_ => addUser).toArray
+  println("%%%%%%%%%%%%%%%%%%%%%")
+  //println(users)
+  println(users.toString)
 
   def randomUser() = {
     users(ThreadLocalRandom.current().nextInt(users.length))
   }
   def randomUserTokensJson = {
     val user = randomUser()
-    tokensJson(tenantName, user.name, user.password)
+    tokensJson(user.name, user.password, user.domain, user.project)
   }
 
   trait RequestFactory {
@@ -136,7 +206,7 @@ class AuthKeystoneSetup {
     def retryWait: Int = 30
   }
 
-  def reqWithRetry(rf: RequestFactory, tries: Int = 3): Try[org.asynchttpclient.Response] = {
+  def reqWithRetry(rf: RequestFactory, tries: Int = 1): Try[org.asynchttpclient.Response] = {
     var triesLeft = tries
     var lastFail: Throwable = null
     while (triesLeft > 0) {
@@ -163,7 +233,7 @@ class AuthKeystoneSetup {
     Failure(lastFail)
   }
 
-  def deleteUser(user: User, tries: Int = 3): Unit = {
+  def deleteUser(user: User, tries: Int = 1): Unit = {
     reqWithRetry(new RequestFactory {
       override def newResp: Response = {
         httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/users/" + user.id)
@@ -177,10 +247,10 @@ class AuthKeystoneSetup {
     }, tries)
   }
 
-  def deleteTenant(tries: Int = 3): Unit = {
+  def deleteTenant(tries: Int = 1): Unit = {
     reqWithRetry(new RequestFactory {
       override def newResp: Response = {
-        httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/tenants/" + tenantId)
+        httpClient.prepareDelete(TestConfig.OS_AUTH_URL + "/projects/" + tenantId)
           .setHeader("X-Auth-Token", authToken)
           .execute().get()
       }
@@ -192,13 +262,13 @@ class AuthKeystoneSetup {
   }
 
   def cleanup(): Unit = {
-    users.foreach(deleteUser(_))
+    //users.foreach(deleteUser(_))
 
-    deleteTenant()
+    //deleteTenant()
   }
 }
 
-case class User(name: String, password: String, id: String)
+case class User(name: String, password: String, id: String, domain: String, project: String, projectId: String)
 
 object Json {
   import org.json4s._
@@ -211,9 +281,21 @@ object Json {
   case class AccessObj(token: TokenObj, serviceCatalog: Any)
   case class TokenObj(issued_at: String, expires: String, id: String, tenant: Any, audit_ids: Any)
 
-  case class TenantsResp(tenant: TenantObj)
-  case class TenantObj(name: String, id: String)
+  //case class TenantsResp(tenant: TenantObj)
+  //case class TenantObj(name: String, id: String)
+
+  case class DomainsResp(domain: DomainObj)
+  case class DomainObj(name: String, id: String)
+
+  case class ProjectsResp(project: ProjectObj)
+  case class ProjectObj(name: String, id: String)
+    
+  case class RoleObj(id: String, name: String)
+  case class RolesResp(roles: List[RoleObj], links: LinksObj)
+  //case class StuffObj(roles: List[RoleObj], links: LinksObj)
+  case class LinksObj(next: String)
+  
 
   case class UsersResp(user: UserObj)
-  case class UserObj(id: String, enabled: Boolean, name: String, username: String)
+  case class UserObj(id: String, enabled: Boolean, name: String)
 }

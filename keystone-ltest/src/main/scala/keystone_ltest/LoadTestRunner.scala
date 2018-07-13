@@ -32,7 +32,7 @@ object LoadTestRunner extends App {
   val props = new GatlingPropertiesBuilder
   props.simulationClass("keystone_ltest.AuthenticateKeystoneTest")
   props.resultsDirectory(outPath.toString)
-
+  println(props.build)
   try {
     Gatling.fromMap(props.build)
   } catch {
