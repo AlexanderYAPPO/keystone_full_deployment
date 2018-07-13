@@ -21,7 +21,7 @@ mariadb_install_tools: False
 # MariaDB users
 mariadb_user_home: /root
 mariadb_root_username: root
-mariadb_root_password: root
+mariadb_root_password: tester
 mariadb_debsysmaint_password: root
 mariadb_client_port: 3306
 mariadb_uid:

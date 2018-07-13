@@ -47,7 +47,7 @@
   command: mysql_install_db --user=mysql --ldata={{mariadb_datadir}}
   #when: datadir_is_ok.stat.exists == False
 - name: set .my.cnf root blank password for temporary mariadb
-  lineinfile: dest=/root/.my.cnf regexp='^password=' line='password=' owner=root group=root mode=0600
+  lineinfile: dest=/root/.my.cnf regexp='^password=' line='password=tester' owner=root group=root mode=0600
   ignore_errors: yes
 - meta: flush_handlers
 
@@ -92,7 +92,12 @@
 
 - name: Delete InnoDB ib_logfile1
   command: rm /var/lib/mysql/ib_logfile1
-
+- name:  Delete InnoDB ib_logfile1
+  file: path=/var/lib/mysql/ib_logfile1 state=absent
+  sudo: yes
+- name:  Delete InnoDB ib_logfile0
+  file: path=/var/lib/mysql/ib_logfile0 state=absent
+  sudo: yes
 - name: set debian-sys-maint user account
   mysql_user: name='debian-sys-maint' password='{{mariadb_debsysmaint_password}}' priv=*.*:ALL state=present
 

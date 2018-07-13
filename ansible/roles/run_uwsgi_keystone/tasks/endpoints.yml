@@ -19,24 +19,4 @@
 #
 
 
-- name: Create Keystone services
-  keystone_service: >
-    name="keystone"
-    service_type="identity"
-    description="{{ item.description|default('Not provided') }}"
-    endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
-    token="{{ keystone_admin_token }}"
-    state="{{ item.state|default('present') }}"
-  with_items: keystone_services
 
-- name: Create Keystone endpoints
-  keystone_endpoint: >
-    service_name="keystone"
-    region="{{ item.region|default(keystone_default_region) }}"
-    public_url="http://127.0.0.1:5000"
-    internal_url="http://127.0.0.1:5000"
-    admin_url="http://127.0.0.1:35357"
-    endpoint="http://127.0.0.1:35357/v2.0"
-    token="admin"
-    state="{{ item.state|default('present') }}"
-  with_items: keystone_endpoints

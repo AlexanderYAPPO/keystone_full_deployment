@@ -18,17 +18,3 @@
 # limitations under the License.
 #
 
-- name: Create Keystone users
-  keystone_user: >
-    user="admin"
-    password="admin"
-    tenant="admin"
-    email="{{ item.email|default('nobody@localhost') }}"
-    endpoint="{{ keystone_protocol }}://{{ keystone_hostname }}:{{ keystone_admin_port }}/v2.0"
-    token="{{ keystone_admin_token }}"
-    state="{{ item.state|default('present') }}"
-  with_items: keystone_users
-  register: result
-  until: not result|failed
-  retries: "{{ keystone_api_retries }}"
-  delay: "{{ keystone_api_retries_delay }}"

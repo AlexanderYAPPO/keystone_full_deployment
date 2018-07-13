@@ -19,7 +19,7 @@ DEVNULL = open(devnull, 'wb')
 
 THRESHOLD = 0.001
 TIMES = 180
-DEP_NAME = "kong2"
+DEP_NAME = "kong"
 
 
 class DegradationCheck:
