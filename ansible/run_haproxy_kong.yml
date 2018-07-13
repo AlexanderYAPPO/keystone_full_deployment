@@ -1,0 +1,5 @@
+- hosts: "my_name_keystone-HAProxy"
+  roles:
+    - role: haproxy_kong
+      sudo: yes
+

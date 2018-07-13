@@ -1,0 +1,34 @@
+---
+- hosts: "my_name-cassandra-master:my_name-cassandra-slaves"
+  pre_tasks:
+    - name: start Cassandra
+      become: "{{ ansible_user }}"
+      shell: start-stop-daemon --start --chuid {{ ansible_user }} --exec "/opt/cassandra/bin/cassandra"  -m --pidfile /home/{{ ansible_user }}/cassandra.pid -b --no-close > /home/{{ ansible_user }}/cassandra.log 2>&1 -- "-R"
+      when: inventory_hostname ==  hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] 
+
+    - name: pause
+      pause: seconds=60
+
+#    - name: start Cassandra
+#      become: "{{ ansible_user }}"
+#      shell: start-stop-daemon --start --chuid {{ ansible_user }} --exec /opt/cassandra/bin/cassandra -m --pidfile /home/{{ ansible_user }}/cassandra.pid -b --no-close > /home/{{ ansible_user }}/cassandra.log 2>&1
+#      when: inventory_hostname ==  hostvars[inventory_hostname]['groups']['my_name-cassandra-slave-1'][0] 
+
+#    - name: start Cassandra
+#      become: "{{ ansible_user }}"
+#      shell: start-stop-daemon --start --chuid {{ ansible_user }} --exec /opt/cassandra/bin/cassandra -m --pidfile /home/{{ ansible_user }}/cassandra.pid -b --no-close > /home/{{ ansible_user }}/cassandra.log 2>&1
+#      when: inventory_hostname ==  hostvars[inventory_hostname]['groups']['my_name-cassandra-slave-2'][0] 
+
+
+#    - name: start Cassandra
+#      become: "{{ ansible_user }}"
+#      shell: start-stop-daemon --start --chuid {{ ansible_user }} --exec /opt/cassandra/bin/cassandra -m --pidfile /home/{{ ansible_user }}/cassandra.pid -b --no-close > /home/{{ ansible_user }}/cassandra.log 2>&1
+#      when: inventory_hostname == hostvars[inventory_hostname]['groups']['my_name-cassandra-slave-3'][0]
+    - name: start Cassandra
+      become: "{{ ansible_user }}"
+      shell: start-stop-daemon --start --chuid {{ ansible_user }} --exec "/opt/cassandra/bin/cassandra" -m --pidfile /home/{{ ansible_user }}/cassandra.pid -b --no-close > /home/{{ ansible_user }}/cassandra.log 2>&1 -- "-R"
+      when: inventory_hostname !=  hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] 
+
+    - name: pause
+      pause: seconds=150 # 30 120
+

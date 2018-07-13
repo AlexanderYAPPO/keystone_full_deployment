@@ -1,0 +1,8 @@
+---
+
+- hosts: "{{ cluster_name }}-cache" 
+  pre_tasks:
+    - name: memcached service
+      service: name=memcached state=restarted
+      sudo: yes
+

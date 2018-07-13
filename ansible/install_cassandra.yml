@@ -1,0 +1,6 @@
+---
+
+- hosts: "my_name-cassandra-master:my_name-cassandra-slaves"
+  roles:
+    - role: cassandra
+      sudo: yes

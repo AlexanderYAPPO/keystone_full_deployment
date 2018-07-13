@@ -1,0 +1,13 @@
+
+- name: Enable haproxy
+  shell: "echo ENABLED=1 > /etc/default/haproxy"
+
+- name: Copy the postgresql haproxy file
+  template:
+    src: templates/haproxy.cfg
+    dest: /etc/haproxy/haproxy.cfg
+
+- name: Start haproxy
+  service: name=haproxy state=restarted
+  become: yes
+
