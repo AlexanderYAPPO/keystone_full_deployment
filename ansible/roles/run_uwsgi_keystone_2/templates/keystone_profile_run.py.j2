@@ -1,0 +1,10 @@
+from wsgiref import simple_server
+import cProfile
+import imp
+import sys
+
+#sys.dont_write_bytecode = True
+admin = imp.load_source('admin', '{{ keystone_cgi_dir }}/admin')
+
+server_test = simple_server.make_server('', {{ keystone_admin_port }}, admin.get_app())
+cProfile.run('server_test.serve_forever()', '{{ keystone_profile_result_path }}')

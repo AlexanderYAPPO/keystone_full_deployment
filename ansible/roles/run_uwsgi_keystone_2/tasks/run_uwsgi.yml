@@ -1,0 +1,49 @@
+- name: copy nginx config
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
+  sudo: yes
+
+- name: Remove default config
+  shell: "rm -rf /etc/nginx/sites-enabled/*"
+  become: yes
+  ignore_errors: yes
+- name: Remove default config
+
+  shell: "rm -rf /etc/nginx/sites-available/*"
+  become: yes
+  ignore_errors: yes
+
+- name: Restart nginx
+  service: name=nginx state=restarted
+  sudo: yes
+
+- name: Create server blocks
+  template: src=keystone_server_block.j2 dest=/etc/nginx/sites-available/keystone
+  sudo: yes
+
+- name: check keystone slink is present
+  stat: path=/etc/nginx/sites-enabled/keystone
+  register: link_is_ok
+
+- shell: "ln -s /etc/nginx/sites-available/keystone /etc/nginx/sites-enabled"
+  sudo: yes
+  when: link_is_ok.stat.exists == False
+
+- name: copy uwsgi ini file
+  template: src=uwsgi-keystone.ini.j2 dest=/tmp/uwsgi-keystone-{{ item.endpoint_role }}.ini owner={{ global_os_user }}
+  with_items:
+    - { endpoint_role: 'admin' }
+  #  - { endpoint_role: 'main' }
+  sudo: yes
+
+
+
+- name: Running Keystone over uWSGI 
+  shell: "source {{ keystone_dir }}/venv/bin/activate; {{ keystone_dir }}/venv/bin/uwsgi --ini /tmp/uwsgi-keystone-admin.ini --daemonize2 /dev/null -L"
+  with_items:
+    - 'admin'
+  #  - 'main'
+
+
+- name: Restart nginx
+  service: name=nginx state=restarted
+  sudo: yes

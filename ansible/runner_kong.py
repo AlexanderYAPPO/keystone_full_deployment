@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 #from ansible.playbook import PlayBook
 #from ansible import callbacks
 #from ansible import utils
-from degr_kong import DegradationCheck
+from degr import DegradationCheck
 from getpass import getuser
 import os
 import sys
@@ -15,12 +15,12 @@ from ansible.inventory import Inventory
 from ansible.executor.playbook_executor import PlaybookExecutor
 inventory = None
 variable_manager = None
-WEB_SERVERS = ["uwsgi"]
+WEB_SERVERS = ["tarantool"]
 BACKENDS = ["postgresql"]  # database type
 HARDWARE_LIST = (
     #"HDD",
     #"/dev/sdb1",  # SSD
-    "tmpfs",  # overlay
+    "tarantool",  # overlay
     #"/dev/sda7"  # HDD
     )
 
@@ -48,11 +48,11 @@ class Generator:
         self.gen_list = []
         if act == "install":
             new_list = [
-                Task("install", "postgresql", Extra()),
+                #Task("install", "postgresql", Extra()),
                 #Task("install", "mysql", Extra()),
-                Task("install", "keystone", Extra()),
+                #Task("install", "keystone", Extra()),
                 #Task("install", "apache", Extra()),
-                Task("install", "uwsgi", Extra()),
+                #Task("install", "uwsgi", Extra()),
                 #Task("install", "rally", Extra()),
                 #Task("install", "mock", Extra())
                 ]
@@ -63,43 +63,30 @@ class Generator:
                 for web_server in WEB_SERVERS:
                     for hardware in HARDWARE_LIST:
                         new_list = [
-                            Task("stop", "cassandra", Extra()),
-                            Task("stop", "kong", Extra()),
-                            Task("stop", "uwsgi", Extra()),
-                            Task("stop", "redis", Extra()),
-                            Task("stop", "postgresql", Extra()),
-                            Task("run", "cassandra", Extra()),
-                            Task("run", "kong", Extra()),
-                            #Task("umount", hardware, Extra(database)),
-                            #Task("mount", hardware, Extra(database)),
-                            #Task("stop", "postgresql", Extra()),
-                            #Task("run", "postgresql", Extra()),
-                            Task("run", "kong", Extra()),
-                            #Task("stop", "tarantool", Extra()),
                             #Task("stop", "rally", Extra()),
                             #Task("run_instances", web_server, Extra()),
                             #Task("stop", web_server, Extra()),
                             #Task("stop", database, Extra()),
+                            Task("stop", "uwsgi", Extra()),
                             #Task("stop", "apache", Extra()),
                             #Task("umount", "mysql", Extra()),
                             #Task("umount", "postgresql", Extra()),
-                            #Task("umount", "postgresql", Extra(database)),
-                            #Task("mount", hardware, Extra(database)),
+                            ##Task("mount", hardware, Extra(database)),
                             #Task("install", "postgresql", Extra()),
                             #Task("install", "uwsgi", Extra()),
                             #Task("install", "keystone", Extra()),
                             #Task("run", database, Extra(database)),
-
-                            #Task("run", web_server, Extra(database)),
-                            #Task("run", "inittarantool", Extra(database)),
+                            Task("stop", web_server, Extra()),
+                            Task("run", web_server, Extra(database)),
+                            Task("run", "inittarantool", Extra(database)),
                             ##Task("func", "tests", Extra(database,
                             ##                            hardware,
-                            ##                           web_server,
-                            ##                           1,
-                            ##                            500
+                            ##                            web_server,
+                            ##                            1,
+                            ##                            20
                             ##                            )),
-                            ###Task("stop", web_server, Extra()),
-                            ##Task("stop", database, Extra()),
+                            ##Task("stop", web_server, Extra()),
+                            #Task("stop", database, Extra()),
                             #T#ask("umount", database, Extra(database))
 #                           # Task("stop", "rally", Extra())
                             ]
@@ -172,11 +159,8 @@ class Runner:
 
     @staticmethod
     def run_playbook(name, **kwargs):
-        kwargs["cluster_name"] = "my_name_keystone_kong"
-        with open("/home/modis/cur_n.txt", "r") as f:
-            txt = f.readline()
-        print(txt)
-        kwargs["n_slaves"] = txt.replace("\n", "")
+        kwargs["cluster_name"] = "my_name_keystone"
+        kwargs["n_slaves"] = "32"
         #kwargs["global_db"] = "postgresql"
         kwargs["ansible_ssh_private_key_file"] = "~/.ssh/my_name_key.key"
         ansible_dir = "/home/%s/keystone_full_deployment/ansible" % getuser()
@@ -189,12 +173,13 @@ class Runner:
             inventory = Inventory(loader=loader, variable_manager=variable_manager,  host_list="%s/openstack_inventory.py" % ansible_dir)
             variable_manager.set_inventory(inventory)
         playbook_path = '/home/%s/keystone_full_deployment/ansible/%s.yml' % (getuser(), name)
+
         if not os.path.exists(playbook_path):
             print '[INFO] The playbook does not exist'
             sys.exit()
 
-        Options = namedtuple('Options', ['listtags', 'listtasks', 'listhosts', 'syntax', 'connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check'])
-        options = Options(listtags=False, listtasks=False, listhosts=False, syntax=False, connection='ssh', module_path=None, forks=100, remote_user=_user, private_key_file='/home/%s/.ssh/id_rsa' % getuser(), ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=True, become_method="sudo", become_user="root", verbosity=None, check=False)
+        Options = namedtuple('Options', ['listtags', 'listtasks', 'listhosts', 'syntax', 'connection','module_path', 'forks', 'remote_user', 'private_key_file', 'ssh_common_args', 'ssh_extra_args', 'sftp_extra_args', 'scp_extra_args', 'become', 'become_method', 'become_user', 'verbosity', 'check', "transport","timeout"])
+        options = Options(listtags=False, listtasks=False, listhosts=False, syntax=False, connection='ssh', module_path=None, forks=100, remote_user=_user, private_key_file='/home/%s/.ssh/id_rsa' % getuser(), ssh_common_args=None, ssh_extra_args=None, sftp_extra_args=None, scp_extra_args=None, become=True, become_method="sudo", become_user="root", verbosity=None, check=False,transport="paramiko",timeout=600)
 
         variable_manager.extra_vars = kwargs # This can accomodate various other command line arguments.`
 

@@ -1,0 +1,29 @@
+Listen {{ keystone_port }}
+Listen {{ keystone_admin_port }}
+
+<VirtualHost *:{{ keystone_port }}>
+  WSGIDaemonProcess keystone-public processes=5 threads=1 user={{ global_os_user }} display-name=%{GROUP}
+  WSGIProcessGroup keystone-public
+  WSGIScriptAlias / {{ keystone_cgi_dir }}/main
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  <IfVersion >= 2.4>
+    ErrorLogFormat "%{cu}t %M"
+  </IfVersion>
+  LogLevel info
+  ErrorLog /var/log/apache2/keystone-error.log
+  CustomLog /var/log/apache2/keystone-access.log combined
+</VirtualHost>
+<VirtualHost *:{{ keystone_admin_port }}>
+  WSGIDaemonProcess keystone-admin processes=5 threads=1 user={{ global_os_user }} display-name=%{GROUP}
+  WSGIProcessGroup keystone-admin
+  WSGIScriptAlias / {{ keystone_cgi_dir }}/admin
+  WSGIApplicationGroup %{GLOBAL}
+  WSGIPassAuthorization On
+  <IfVersion >= 2.4>
+    ErrorLogFormat "%{cu}t %M"
+  </IfVersion>
+  LogLevel info
+  ErrorLog /var/log/apache2/keystone-error.log
+  CustomLog /var/log/apache2/keystone-access.log combined
+</VirtualHost>
