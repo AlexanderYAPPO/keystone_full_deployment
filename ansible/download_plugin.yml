@@ -1,0 +1,7 @@
+---
+
+- hosts: "{{ cluster_name }}-master"
+  roles:
+    - role: download_keystone_plugin
+
+
