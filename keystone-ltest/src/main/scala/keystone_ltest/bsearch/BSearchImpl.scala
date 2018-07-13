@@ -98,22 +98,42 @@ class BSearchImpl(opts: BSearchCliOptions) {
 
     import sys.process._
     val startTm = System.nanoTime()
-    val rc = Process(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir).!
+import scala.io.Source
+    log.info(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir)
+    //log.info(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir)
+   val n_slaves = scala.io.Source.fromFile("/home/modis/cur_n.txt").getLines.mkString
+  val start = s"""/usr/local/bin/ansible-playbook -i /home/modis/keystone_full_deployment/ansible/openstack_inventory.py /home/modis/keystone_full_deployment/ansible/run_kong.yml --extra-vars=\"ansible_ssh_private_key_file=~/.ssh/my_name_key.key ansible_user=modis cluster_name=my_name_keystone_kong n_slaves="""+n_slaves+s"""\""""
+
+       //val runner = Process("ansible-playbook -i /home/modis/keystone_full_deployment/ansible/openstack_inventory.py /home/modis/keystone_full_deployment/ansible/stop_redis.yml ").! 
+    val runner = Process("/home/modis/keystone_full_deployment/ansible/runner.py -u modis -p ***REMOVED*** run").! 
+
+println(start)
+
+    //val kong = Process(s"${start}") //s"""ansible-playbook -i /home/modis/keystone_full_deployment/ansible/openstack_inventory.py /home/modis/keystone_full_deployment/ansible/run_kong.yml --extra-vars=\"ansible_ssh_private_key_file=~/.ssh/my_name_key.key ansible_user=modis cluster_name=my_name_keystone_kong n_slaves="""+n_slaves+s"""\"""").!   
+val rc = Process(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir).!
+    println("ok");
     val simTime = (System.nanoTime() - startTm)/1e9
     log.info(s"simulation took $simTime seconds")
 
     if (rc != 0) {
-      var errFile = new File(testResPath, "err.txt")
-      val ex = if (errFile.exists()) {
-        val err = scala.io.Source.fromFile(errFile).getLines().take(1).mkString("")
-        new Exception(s"simulation failed with rc=$rc, error text: $err")
-      } else {
-        new Exception(s"simulation failed with rc=$rc")
-      }
-      log.error("test failed", ex)
-      throw ex
+      println("!00000000000!")
+      runInd -= 1
+      test(rps)
+        //val rc = Process(s"java -cp ${opts.jarPath.getAbsolutePath} keystone_ltest.LoadTestRunner $testId", opts.outDir).!
+        //println("ok");
+        //val simTime = (System.nanoTime() - startTm)/1e9
+        //log.info(s"simulation took $simTime seconds")
+      //var errFile = new File(testResPath, "err.txt")
+      //val ex = if (errFile.exists()) {
+      //  val err = scala.io.Source.fromFile(errFile).getLines().take(1).mkString("")
+      //  new Exception(s"simulation failed with rc=$rc, error text: $err")
+      //} else {
+      //  new Exception(s"simulation failed with rc=$rc")
+      //}
+      //log.error("test failed", ex)
+      //throw ex
     }
-
+    println("check")
     val (passed, rMap) = check(testResPath, rps)
 
     csvResults.addResult(rMap ++ Map(

@@ -1,4 +1,4 @@
-- hosts: "bogomolov_keystone-HAProxy"
+- hosts: "my_name_keystone-HAProxy"
   roles:
     - role: haproxy
       sudo: yes

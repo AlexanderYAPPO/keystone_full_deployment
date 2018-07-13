@@ -1,4 +1,4 @@
-- hosts: "bogomolov_keystone-master"
+- hosts: "my_name_keystone-master"
 
   roles:
     - role: run_postgresql

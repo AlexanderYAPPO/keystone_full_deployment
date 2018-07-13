@@ -59,7 +59,7 @@
 - shell: "{{ keystone_dir }}/venv/bin/pip install psycopg2-binary"
 
 - name: bootstrap
-  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{hostvars[inventory_hostname]['groups']['bogomolov_keystone-HAProxy'][0] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-internal-url http://{{hostvars[inventory_hostname]['groups']['bogomolov_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-internal-url http://{{hostvars[inventory_hostname]['groups']['my_name_keystone-HAProxy'][0] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
   when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
 
 

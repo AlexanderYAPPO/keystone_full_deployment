@@ -2,6 +2,7 @@ package keystone_ltest
 
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
+
 import scala.concurrent.duration._
 
 class AuthenticateKeystoneTest extends Simulation {
@@ -17,10 +18,10 @@ class AuthenticateKeystoneTest extends Simulation {
         .get("")
         .check(status.is(200)))
           .exec(http("tokens")
-            .post("/tokens")
+            .post("/auth/tokens")
             .body(StringBody(session => setup.randomUserTokensJson))
             .header("Content-Type", "application/json")
-            .check(status.is(200)))
+            .check(status.is(201)))
     }
 
   TestConfig.authConf.runner.`type` match {

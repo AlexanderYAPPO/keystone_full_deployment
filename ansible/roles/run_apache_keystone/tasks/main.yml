@@ -11,7 +11,7 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['bogomolov-cassandra-master'][0] }}/keystone"
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] }}/keystone"
   become: yes
 - name: Sync Keystone database
   command: '/bin/sh -c "{{ keystone_dir }}/venv/bin/keystone-manage db_sync" keystone'
@@ -33,7 +33,7 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['bogomolov-cassandra-master'][0] }}/keystone"
+      value: "{{ global_db }}://keystone:{{ global_keystone_password }}@{{ hostvars[inventory_hostname]['groups']['my_name-cassandra-master'][0] }}/keystone"
   become: true
 
 
@@ -78,5 +78,5 @@
 
 
 - name: bootstrap fix
-  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-HAProxy'] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-internal-url http://{{ hostvars[inventory_hostname]['groups']['bogomolov_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
+  shell: "{{ keystone_dir }}/venv/bin/keystone-manage bootstrap --bootstrap-username admin --bootstrap-password tester --bootstrap-service-name admin --bootstrap-admin-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:35357/v3 --bootstrap-public-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-internal-url http://{{ hostvars[inventory_hostname]['groups']['my_name_keystone_kong-HAProxy'] }}:5000/v3 --bootstrap-project-name admin --bootstrap-role-name admin --bootstrap-region-id RegionOne"
   when: inventory_hostname == groups[cluster_name + '-slave-1'][0]
