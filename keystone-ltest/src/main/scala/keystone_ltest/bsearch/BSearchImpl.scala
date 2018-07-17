@@ -105,7 +105,7 @@ import scala.io.Source
   val start = s"""/usr/local/bin/ansible-playbook -i /home/modis/keystone_full_deployment/ansible/openstack_inventory.py /home/modis/keystone_full_deployment/ansible/run_kong.yml --extra-vars=\"ansible_ssh_private_key_file=~/.ssh/my_name_key.key ansible_user=modis cluster_name=my_name_keystone_kong n_slaves="""+n_slaves+s"""\""""
 
        //val runner = Process("ansible-playbook -i /home/modis/keystone_full_deployment/ansible/openstack_inventory.py /home/modis/keystone_full_deployment/ansible/stop_redis.yml ").! 
-    val runner = Process("/home/modis/keystone_full_deployment/ansible/runner.py -u modis -p ***REMOVED*** run").! 
+    val runner = Process("/home/modis/keystone_full_deployment/ansible/runner.py -u modis -p test run").! 
 
 println(start)
 
